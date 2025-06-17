@@ -42,4 +42,5 @@ class $modify(MyMenuLayer, MenuLayer) {
     void onMyButton(CCObject*) {
     auto popup = MyPopup::create();
     popup->show();
-}
+    }
+}; 
