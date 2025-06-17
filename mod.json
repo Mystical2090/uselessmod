@@ -11,7 +11,8 @@
   "version": "v1.0.0",
   "developer": "Mystical433",
   "description": "",
-  "resources": [
+  "resources": {
+  "files": [
     "spritw.png"
   ]
 }
