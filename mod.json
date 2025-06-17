@@ -1,17 +1,17 @@
 {
-	"geode": "4.4.0",
-	"gd": {
-		"win": "2.2074",
-		"android": "2.2074",
-		"mac": "2.2074",
-		"ios": "2.2074"
-	},
-	"id": "mystical433.useless_mod",
-	"name": "Useless Mod",
-	"version": "v1.0.0",
-	"developer": "Mystical433",
-	"description": "",
-"resources": [
-        "spritw.png"
-    ]
+  "geode": "4.5.0",
+  "gd": {
+    "win": "2.2074",
+    "android": "2.2074",
+    "mac": "2.2074",
+    "ios": "2.2074"
+  },
+  "id": "mystical433.useless_mod",
+  "name": "Useless Mod",
+  "version": "v1.0.0",
+  "developer": "Mystical433",
+  "description": "",
+  "resources": [
+    "spritw.png"
+  ]
 }
