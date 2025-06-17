@@ -41,7 +41,6 @@ protected:
         auto menu = CCMenu::create();
         menu->setPosition({0, 0});
 
-        // Chapter buttons (1-20) - more comprehensive
         for (int i = 1; i <= 20; ++i) {
             auto normalSprite = ButtonSprite::create(("Ch." + std::to_string(i)).c_str(), "goldFont.fnt", "GJ_button_04.png");
             normalSprite->setScale(0.6f); // Smaller buttons
@@ -52,14 +51,12 @@ protected:
             );
             button->setTag(i);
             
-            // Arrange in 5 columns, 4 rows
             float x = 80.f + ((i - 1) % 5) * 130.f;
             float y = 450.f - ((i - 1) / 5) * 35.f;
             button->setPosition({x, y});
             menu->addChild(button);
         }
 
-        // Close button
         auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
         auto closeButton = CCMenuItemSpriteExtra::create(
             closeSprite, 
