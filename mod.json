@@ -6,11 +6,11 @@
     "mac": "2.2074",
     "ios": "2.2074"
   },
-  "id": "mystical433.useless_mod",
-  "name": "Useless Mod",
+  "id": "mystical433.learn_python",
+  "name": "Learn Python!",
   "version": "v1.0.0",
   "developer": "Mystical433",
-  "description": "",
+  "description": "Python is hard, So learn it using this mod!",
   "resources": {
     "files": [
       "spritw.png"
