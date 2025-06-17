@@ -34,10 +34,13 @@ protected:
             menu->addChild(button);
         }
 
-        // Close button
-        auto closeLabel = CCLabelBMFont::create("Close", "bigFont.fnt");
-        auto closeButton = CCMenuItemLabel::create(closeLabel, this, menu_selector(PythonPopup::onClose));
-        closeButton->setPosition({440.f, 30.f});
+        auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
+        auto closeButton = CCMenuItemSpriteExtra::create(
+            closeSprite, 
+            this, 
+            menu_selector(PythonPopup::onClose)
+        );
+        closeButton->setPosition({220.f, 140.f});
         menu->addChild(closeButton);
 
         m_mainLayer->addChild(menu);
@@ -90,8 +93,8 @@ protected:
         }
     }
 
-   void onClose(CCObject*) override {
-    this->closePopup();
+ void onClose(CCObject*) override {
+        this->closePopup();
 }
 
 public:
