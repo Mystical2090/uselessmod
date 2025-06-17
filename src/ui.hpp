@@ -26,8 +26,12 @@ protected:
 
         // Chapter buttons (1-10)
         for (int i = 1; i <= 10; ++i) {
-            auto label = CCLabelBMFont::create(("Ch. " + std::to_string(i)).c_str(), "bigFont.fnt");
-            auto button = CCMenuItemLabel::create(label, this, menu_selector(PythonPopup::onChapter));
+            auto normalSprite = ButtonSprite::create(("Ch. " + std::to_string(i)).c_str(), "bigFont.fnt", "GJ_button_01.png");
+            auto button = CCMenuItemSpriteExtra::create(
+                normalSprite,
+                this,
+                menu_selector(PythonPopup::onChapter)
+            );
             button->setTag(i);
             float x = 60.f + ((i - 1) % 5) * 90.f;
             float y = 70.f - ((i - 1) / 5) * 50.f;
