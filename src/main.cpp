@@ -1,5 +1,5 @@
 #include <Geode/Geode.hpp>
-#include "ui.hpp"
+#include "pythonui.hpp"
 #include <Geode/modify/MenuLayer.hpp>
 
 using namespace geode::prelude;
