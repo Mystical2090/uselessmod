@@ -5,12 +5,17 @@ using namespace geode::prelude;
 class MyPopup : public geode::Popup<> {
 protected:
     CCLabelBMFont* m_label = nullptr;
+    CCLabelBMFont* m_descLabel = nullptr;
 
     bool setup() override {
-        this->setTitle("useless mod");
+        this->setTitle("Welcome!");
 
-        m_label = CCLabelBMFont::create("useless mod", "bigFont.fnt");
-        m_label->setPosition({160, 140});
+        m_descLabel = CCLabelBMFont::create("Useless mod.", "bigFont.fnt");
+        m_descLabel->setPosition({200, 180});
+        m_mainLayer->addChild(m_descLabel);
+
+        m_label = CCLabelBMFont::create("Most useless thing", "bigFont.fnt");
+        m_label->setPosition({200, 130});
         m_mainLayer->addChild(m_label);
 
         auto menu = CCMenu::create();
@@ -28,7 +33,7 @@ protected:
             this,
             menu_selector(MyPopup::onButtonClick)
         );
-        button->setPosition({160, 40});
+        button->setPosition({20, 200}); // top left corner inside 400x240 popup
         menu->addChild(button);
 
         return true;
@@ -39,12 +44,15 @@ protected:
         if (m_label) {
             m_label->setString("Useless Mod");
         }
+        if (m_descLabel) {
+            m_descLabel->setString("die");
+        }
     }
 
 public:
     static MyPopup* create() {
         auto ret = new MyPopup();
-        if (ret->initAnchored(320.f, 180.f)) {
+        if (ret->initAnchored(400.f, 240.f)) {
             ret->autorelease();
             return ret;
         }
