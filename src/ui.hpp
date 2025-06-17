@@ -90,9 +90,9 @@ protected:
         }
     }
 
-    void onClose(CCObject*) {
-        this->dismiss();
-    }
+   void onClose(CCObject*) override {
+    this->close();
+}
 
 public:
     static PythonPopup* create() {
