@@ -40,7 +40,7 @@ class $modify(MyMenuLayer, MenuLayer) {
     }
 
     void onMyButton(CCObject*) {
-    auto popup = MyPopup::create();
-    popup->show();
+        auto popup = PythonPopup::create();
+        popup->show();
     }
 }; 
