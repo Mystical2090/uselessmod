@@ -11,61 +11,136 @@ protected:
     CCLabelBMFont* contentLabel;
     ScrollLayer* scrollLayer;
     CCLayer* contentLayer;
+    CCMenu* chapterMenu;
+    CCLabelBMFont* pageLabel;
+    CCMenuItemSpriteExtra* prevButton;
+    CCMenuItemSpriteExtra* nextButton;
+    
+    int currentPage = 0;
+    static const int chaptersPerPage = 10;
+    static const int totalChapters = 20;
 
     bool setup() override {
-        this->setTitle("Python Complete Tutorial");
+        this->setTitle("Python Tutorial");
 
-        // Title label
         titleLabel = CCLabelBMFont::create("Select a Chapter to Begin Learning", "bigFont.fnt");
-        titleLabel->setPosition({360.f, 400.f});
-        titleLabel->setScale(0.8f);
+        titleLabel->setPosition({280.f, 320.f});
+        titleLabel->setScale(0.6f);
         m_mainLayer->addChild(titleLabel);
 
-        // Create scroll layer for content
-        scrollLayer = ScrollLayer::create({680.f, 280.f});
-        scrollLayer->setPosition({40.f, 80.f});
+        scrollLayer = ScrollLayer::create({520.f, 180.f});
+        scrollLayer->setPosition({20.f, 80.f});
         
         contentLayer = CCLayer::create();
         
-        contentLabel = CCLabelBMFont::create("Welcome to Python Programming!\n\nPython is a powerful, easy-to-learn programming language.\nIt's great for beginners and used by professionals worldwide.\n\nSelect any chapter to start learning:", "chatFont.fnt", 650.f, kCCTextAlignmentLeft);
-        contentLabel->setPosition({340.f, 250.f});
-        contentLabel->setScale(0.7f);
+        contentLabel = CCLabelBMFont::create("Welcome to Python Programming!\n\nPython is a powerful, easy-to-learn programming language.\nIt's great for beginners and used by professionals worldwide.\n\nSelect any chapter to start learning:", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
+        contentLabel->setPosition({260.f, 150.f});
+        contentLabel->setScale(0.6f);
         contentLabel->setAnchorPoint({0.5f, 0.5f});
         contentLayer->addChild(contentLabel);
         
         scrollLayer->m_contentLayer->addChild(contentLayer);
         m_mainLayer->addChild(scrollLayer);
 
-        auto menu = CCMenu::create();
-        menu->setPosition({0, 0});
+        chapterMenu = CCMenu::create();
+        chapterMenu->setPosition({0, 0});
+        m_mainLayer->addChild(chapterMenu);
 
-        for (int i = 1; i <= 20; ++i) {
+        auto navMenu = CCMenu::create();
+        navMenu->setPosition({0, 0});
+
+        auto prevSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+        prevSprite->setFlipX(true);
+        prevSprite->setScale(0.7f);
+        prevButton = CCMenuItemSpriteExtra::create(
+            prevSprite,
+            this,
+            menu_selector(PythonPopup::onPrevPage)
+        );
+        prevButton->setPosition({50.f, 40.f});
+        navMenu->addChild(prevButton);
+
+        auto nextSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+        nextSprite->setScale(0.7f);
+        nextButton = CCMenuItemSpriteExtra::create(
+            nextSprite,
+            this,
+            menu_selector(PythonPopup::onNextPage)
+        );
+        nextButton->setPosition({510.f, 40.f});
+        navMenu->addChild(nextButton);
+
+        pageLabel = CCLabelBMFont::create("Page 1/2", "goldFont.fnt");
+        pageLabel->setPosition({280.f, 40.f});
+        pageLabel->setScale(0.5f);
+        m_mainLayer->addChild(pageLabel);
+
+        auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
+        closeSprite->setScale(0.8f);
+        auto closeButton = CCMenuItemSpriteExtra::create(
+            closeSprite, 
+            this, 
+            menu_selector(PythonPopup::onClose)
+        );
+        closeButton->setPosition({520.f, 320.f});
+        navMenu->addChild(closeButton);
+
+        m_mainLayer->addChild(navMenu);
+        
+        updateChapterButtons();
+        updateNavigationButtons();
+        
+        return true;
+    }
+
+    void updateChapterButtons() {
+        chapterMenu->removeAllChildren();
+        
+        int startChapter = currentPage * chaptersPerPage + 1;
+        int endChapter = std::min(startChapter + chaptersPerPage - 1, totalChapters);
+        
+        for (int i = startChapter; i <= endChapter; ++i) {
             auto normalSprite = ButtonSprite::create(("Ch." + std::to_string(i)).c_str(), "goldFont.fnt", "GJ_button_04.png");
-            normalSprite->setScale(0.6f);
+            normalSprite->setScale(0.4f); // Smaller buttons
             auto button = CCMenuItemSpriteExtra::create(
                 normalSprite,
                 this,
                 menu_selector(PythonPopup::onChapter)
             );
             button->setTag(i);
-            
-            float x = 80.f + ((i - 1) % 5) * 130.f;
-            float y = 450.f - ((i - 1) / 5) * 35.f;
+
+            int buttonIndex = i - startChapter;
+            float x = 80.f + (buttonIndex % 5) * 100.f;
+            float y = 300.f - (buttonIndex / 5) * 30.f;
             button->setPosition({x, y});
-            menu->addChild(button);
+            chapterMenu->addChild(button);
         }
+    }
 
-        auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
-        auto closeButton = CCMenuItemSpriteExtra::create(
-            closeSprite, 
-            this, 
-            menu_selector(PythonPopup::onClose)
-        );
-        closeButton->setPosition({340.f, 280.f});
-        menu->addChild(closeButton);
+    void updateNavigationButtons() {
+        int totalPages = (totalChapters + chaptersPerPage - 1) / chaptersPerPage;
+        
+        prevButton->setVisible(currentPage > 0);
+        nextButton->setVisible(currentPage < totalPages - 1);
+        
+        pageLabel->setString(("Page " + std::to_string(currentPage + 1) + "/" + std::to_string(totalPages)).c_str());
+    }
 
-        m_mainLayer->addChild(menu);
-        return true;
+    void onPrevPage(CCObject*) {
+        if (currentPage > 0) {
+            currentPage--;
+            updateChapterButtons();
+            updateNavigationButtons();
+        }
+    }
+
+    void onNextPage(CCObject*) {
+        int totalPages = (totalChapters + chaptersPerPage - 1) / chaptersPerPage;
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            updateChapterButtons();
+            updateNavigationButtons();
+        }
     }
 
     void onChapter(CCObject* sender) {
@@ -160,14 +235,12 @@ protected:
         
         titleLabel->setString(title.c_str());
         contentLabel->setString(content.c_str());
-        
-        // Update scroll layer content size based on content
+
         auto contentSize = contentLabel->getContentSize();
-        scrollLayer->m_contentLayer->setContentSize({680.f, contentSize.height + 100.f});
-        contentLayer->setContentSize({680.f, contentSize.height + 100.f});
-        contentLabel->setPosition({340.f, contentSize.height / 2 + 50.f});
+        scrollLayer->m_contentLayer->setContentSize({520.f, contentSize.height + 50.f});
+        contentLayer->setContentSize({520.f, contentSize.height + 50.f});
+        contentLabel->setPosition({260.f, contentSize.height / 2 + 25.f});
         
-        // Reset scroll position to top
         scrollLayer->scrollToTop();
     }
 
@@ -179,7 +252,7 @@ protected:
 public:
     static PythonPopup* create() {
         auto ret = new PythonPopup();
-        if (ret->initAnchored(720.f, 520.f)) {
+        if (ret->initAnchored(560.f, 360.f)) { // Smaller popup size
             ret->autorelease();
             return ret;
         }
