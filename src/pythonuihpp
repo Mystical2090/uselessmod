@@ -1,7 +1,3 @@
-/* speedy
-balls
-*/
-
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
