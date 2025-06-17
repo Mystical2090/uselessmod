@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
 
 using namespace geode::prelude;
 
@@ -8,7 +9,7 @@ class PythonPopup : public geode::Popup<> {
 protected:
     CCLabelBMFont* titleLabel;
     CCLabelBMFont* contentLabel;
-    CCScrollView* scrollView;
+    ScrollLayer* scrollLayer;
     CCLayer* contentLayer;
 
     bool setup() override {
@@ -20,13 +21,11 @@ protected:
         titleLabel->setScale(0.8f);
         m_mainLayer->addChild(titleLabel);
 
-        // Create scroll view for content
-        scrollView = CCScrollView::create();
-        scrollView->setContentSize({680.f, 280.f});
-        scrollView->setPosition({40.f, 80.f});
+        // Create scroll layer for content
+        scrollLayer = ScrollLayer::create({680.f, 280.f});
+        scrollLayer->setPosition({40.f, 80.f});
         
         contentLayer = CCLayer::create();
-        contentLayer->setContentSize({680.f, 500.f}); // Larger for scrolling
         
         contentLabel = CCLabelBMFont::create("Welcome to Python Programming!\n\nPython is a powerful, easy-to-learn programming language.\nIt's great for beginners and used by professionals worldwide.\n\nSelect any chapter to start learning:", "chatFont.fnt", 650.f, kCCTextAlignmentLeft);
         contentLabel->setPosition({340.f, 250.f});
@@ -34,16 +33,15 @@ protected:
         contentLabel->setAnchorPoint({0.5f, 0.5f});
         contentLayer->addChild(contentLabel);
         
-        scrollView->setContainer(contentLayer);
-        scrollView->setContentOffset({0, -220.f});
-        m_mainLayer->addChild(scrollView);
+        scrollLayer->m_contentLayer->addChild(contentLayer);
+        m_mainLayer->addChild(scrollLayer);
 
         auto menu = CCMenu::create();
         menu->setPosition({0, 0});
 
         for (int i = 1; i <= 20; ++i) {
             auto normalSprite = ButtonSprite::create(("Ch." + std::to_string(i)).c_str(), "goldFont.fnt", "GJ_button_04.png");
-            normalSprite->setScale(0.6f); // Smaller buttons
+            normalSprite->setScale(0.6f);
             auto button = CCMenuItemSpriteExtra::create(
                 normalSprite,
                 this,
@@ -162,7 +160,15 @@ protected:
         
         titleLabel->setString(title.c_str());
         contentLabel->setString(content.c_str());
-        scrollView->setContentOffset({0, -50.f}); // Reset scroll position
+        
+        // Update scroll layer content size based on content
+        auto contentSize = contentLabel->getContentSize();
+        scrollLayer->m_contentLayer->setContentSize({680.f, contentSize.height + 100.f});
+        contentLayer->setContentSize({680.f, contentSize.height + 100.f});
+        contentLabel->setPosition({340.f, contentSize.height / 2 + 50.f});
+        
+        // Reset scroll position to top
+        scrollLayer->scrollToTop();
     }
 
     void onClose(CCObject*) override {
@@ -173,7 +179,7 @@ protected:
 public:
     static PythonPopup* create() {
         auto ret = new PythonPopup();
-        if (ret->initAnchored(720.f, 520.f)) { // Bigger popup
+        if (ret->initAnchored(720.f, 520.f)) {
             ret->autorelease();
             return ret;
         }
