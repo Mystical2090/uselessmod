@@ -91,7 +91,7 @@ protected:
     }
 
    void onClose(CCObject*) override {
-    this->close();
+    this->closePopup();
 }
 
 public:
