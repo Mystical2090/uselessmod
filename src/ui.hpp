@@ -1,74 +1,97 @@
 #pragma once
+
 #include <Geode/ui/Popup.hpp>
+
 using namespace geode::prelude;
 
 class PythonPopup : public geode::Popup<> {
 protected:
-    CCLabelBMFont* m_contentLabel = nullptr;
+    CCLabelBMFont* titleLabel;
+    CCLabelBMFont* contentLabel;
 
     bool setup() override {
-        this->setTitle("Useless Mod - Learn Python");
+        this->setTitle("Python Tutorial");
 
-        m_contentLabel = CCLabelBMFont::create(
-            "Select a chapter to learn Python!",
-            "bigFont.fnt"
-        );
-        m_mainLayer->addChildAtPosition(m_contentLabel, Anchor::Center + Vec2(0, 50));
+        titleLabel = CCLabelBMFont::create("Select a Chapter", "bigFont.fnt");
+        titleLabel->setPosition({240.f, 270.f});
+        m_mainLayer->addChild(titleLabel);
+
+        contentLabel = CCLabelBMFont::create("", "goldFont.fnt", 400.f, kCCTextAlignmentLeft);
+        contentLabel->setPosition({240.f, 160.f});
+        contentLabel->limitLabelWidth(400.f, 1.f, 0.1f);
+        m_mainLayer->addChild(contentLabel);
 
         auto menu = CCMenu::create();
-        menu->setPosition(Vec2::ZERO);
+        menu->setPosition({0, 0});
 
-        const float startX = 60.f;
-        const float startY = 220.f;
-        const float spacingY = 25.f;
-
-        for (int i = 1; i <= 10; i++) {
-            std::string chapterName = "Chapter " + std::to_string(i);
-            auto label = CCLabelBMFont::create(chapterName.c_str(), "bigFont.fnt");
-            auto btn = CCMenuItemLabel::create(label, this, menu_selector(PythonPopup::onChapterSelected));
-            btn->setPosition(Vec2(startX, startY - spacingY * (i - 1)));
-            btn->setTag(i);
-            menu->addChild(btn);
+        for (int i = 1; i <= 10; ++i) {
+            auto label = CCLabelBMFont::create(("Ch. " + std::to_string(i)).c_str(), "bigFont.fnt");
+            auto button = CCMenuItemLabel::create(label, this, menu_selector(PythonPopup::onChapter));
+            button->setTag(i);
+            float x = 60.f + ((i - 1) % 5) * 90.f;
+            float y = 70.f - ((i - 1) / 5) * 50.f;
+            button->setPosition({x, y});
+            menu->addChild(button);
         }
 
-        auto closeBtn = CCMenuItemLabel::create(
-            CCLabelBMFont::create("Close", "bigFont.fnt"),
-            this,
-            menu_selector(PythonPopup::onClose)
-        );
-        closeBtn->setPosition(Vec2(480 - 60, 320 - 40));
-        menu->addChild(closeBtn);
+        // Close button
+        auto closeLabel = CCLabelBMFont::create("Close", "bigFont.fnt");
+        auto closeButton = CCMenuItemLabel::create(closeLabel, this, menu_selector(PythonPopup::onClose));
+        closeButton->setPosition({440.f, 30.f});
+        menu->addChild(closeButton);
 
         m_mainLayer->addChild(menu);
-
         return true;
     }
 
-    void onChapterSelected(CCObject* sender) {
-        auto btn = static_cast<CCMenuItemLabel*>(sender);
-        int chapter = btn->getTag();
-
-        static const char* lessons[] = {
-            "",
-            "Chapter 1: Introduction to Python\nPython is a versatile language...",
-            "Chapter 2: Variables and Types\nLearn how to store data...",
-            "Chapter 3: Control Structures\nIf statements and loops...",
-            "Chapter 4: Functions\nReusable blocks of code...",
-            "Chapter 5: Lists and Tuples\nCollections of data...",
-            "Chapter 6: Dictionaries\nKey-value pairs...",
-            "Chapter 7: Classes and Objects\nObject-oriented programming...",
-            "Chapter 8: Modules and Packages\nOrganizing code...",
-            "Chapter 9: File I/O\nReading and writing files...",
-            "Chapter 10: Exception Handling\nManaging errors gracefully..."
-        };
-
-        if (chapter >= 1 && chapter <= 10) {
-            m_contentLabel->setString(lessons[chapter]);
+    void onChapter(CCObject* sender) {
+        int chapter = static_cast<CCNode*>(sender)->getTag();
+        switch (chapter) {
+            case 1:
+                titleLabel->setString("Chapter 1: Variables");
+                contentLabel->setString("Variables store data:\nx = 5\ny = 'Hello'");
+                break;
+            case 2:
+                titleLabel->setString("Chapter 2: Data Types");
+                contentLabel->setString("Common types:\nint, float, str, list, dict");
+                break;
+            case 3:
+                titleLabel->setString("Chapter 3: Control Flow");
+                contentLabel->setString("if, else, for, while:\nif x > 5:\n  print(x)");
+                break;
+            case 4:
+                titleLabel->setString("Chapter 4: Functions");
+                contentLabel->setString("def greet(name):\n  return 'Hi ' + name");
+                break;
+            case 5:
+                titleLabel->setString("Chapter 5: Lists");
+                contentLabel->setString("fruits = ['apple', 'banana']\nprint(fruits[0])");
+                break;
+            case 6:
+                titleLabel->setString("Chapter 6: Dictionaries");
+                contentLabel->setString("person = {'name': 'Alice', 'age': 30}\nprint(person['name'])");
+                break;
+            case 7:
+                titleLabel->setString("Chapter 7: Classes");
+                contentLabel->setString("class Dog:\n  def bark(self):\n    print('Woof!')");
+                break;
+            case 8:
+                titleLabel->setString("Chapter 8: Modules");
+                contentLabel->setString("import math\nprint(math.sqrt(16))");
+                break;
+            case 9:
+                titleLabel->setString("Chapter 9: File I/O");
+                contentLabel->setString("with open('file.txt') as f:\n  data = f.read()");
+                break;
+            case 10:
+                titleLabel->setString("Chapter 10: Exceptions");
+                contentLabel->setString("try:\n  x = 1 / 0\nexcept ZeroDivisionError:\n  print('Error')");
+                break;
         }
     }
 
-    void onClose(CCObject*) override {
-        this->close();
+    void onClose(CCObject*) {
+        this->dismiss();
     }
 
 public:
