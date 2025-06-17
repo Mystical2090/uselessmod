@@ -2,25 +2,24 @@
 #include <Geode/ui/Popup.hpp>
 using namespace geode::prelude;
 
-class MyPopup : public geode::Popup<std::string const&> {
+class MyPopup : public geode::Popup<> {
 protected:
-    bool setup(std::string const& value) override {
+    bool setup() override {
         this->setTitle("Useless Mod");
 
-        auto label = CCLabelBMFont::create(value.c_str(), "bigFont.fnt");
+        auto label = CCLabelBMFont::create("useless mod", "bigFont.fnt");
         m_mainLayer->addChildAtPosition(label, Anchor::Center);
 
         return true;
     }
 
 public:
-    static MyPopup* create(std::string const& text) {
+    static MyPopup* create() {
         auto ret = new MyPopup();
-        if (ret->initAnchored(240.f, 160.f, text)) {
+        if (ret->initAnchored(240.f, 160.f)) {
             ret->autorelease();
             return ret;
         }
-
         delete ret;
         return nullptr;
     }
