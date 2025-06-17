@@ -22,6 +22,7 @@ protected:
     CCMenuItemSpriteExtra* nextButton;
     CCMenuItemSpriteExtra* showAnswerButton;
     CCMenuItemSpriteExtra* tryItButton;
+    CCLabelBMFont* m_currentNotification;
     
     int currentPage = 0;
     int currentChapter = 0;
@@ -30,19 +31,15 @@ protected:
     static const int totalChapters = 20;
 
     bool setup() override {
-        // Create animated background
-        createAnimatedBackground();
+        createAnimatedBackground(); // not done
         
         this->setTitle("Interactive Python Learning");
-
-        // Main title with modern font
         titleLabel = CCLabelBMFont::create("🐍 Interactive Python Tutorial", "chatFont.fnt");
         titleLabel->setPosition({280.f, 330.f});
         titleLabel->setScale(0.8f);
         titleLabel->setColor({46, 125, 50}); // Python green
         m_mainLayer->addChild(titleLabel);
 
-        // Subtitle
         auto subtitleLabel = CCLabelBMFont::create("Learn by doing - Complete missions and see solutions!", "chatFont.fnt");
         subtitleLabel->setPosition({280.f, 310.f});
         subtitleLabel->setScale(0.5f);
@@ -61,8 +58,7 @@ protected:
         scrollLayer->setPosition({20.f, 80.f});
         
         contentLayer = CCLayer::create();
-        
-        // Welcome content with better formatting
+    
         contentLabel = CCLabelBMFont::create("🚀 Welcome to Interactive Python Programming!\n\nPython is the world's most popular programming language.\nPerfect for beginners, powerful for experts.\n\n📚 Each chapter includes:\n  • Clear explanations\n  • Hands-on missions\n  • Instant feedback\n\n👆 Select any chapter below to start your journey!", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
         contentLabel->setPosition({260.f, 150.f});
         contentLabel->setScale(0.65f);
@@ -70,7 +66,6 @@ protected:
         contentLabel->setColor({60, 60, 60});
         contentLayer->addChild(contentLabel);
 
-        // Mission section (initially hidden)
         missionLabel = CCLabelBMFont::create("", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
         missionLabel->setPosition({260.f, 80.f});
         missionLabel->setScale(0.6f);
@@ -91,16 +86,13 @@ protected:
         scrollLayer->m_contentLayer->addChild(contentLayer);
         m_mainLayer->addChild(scrollLayer);
 
-        // Chapter menu
         chapterMenu = CCMenu::create();
         chapterMenu->setPosition({0, 0});
         m_mainLayer->addChild(chapterMenu);
 
-        // Action buttons menu
         actionMenu = CCMenu::create();
         actionMenu->setPosition({0, 0});
 
-        // Show Answer button
         auto answerBg = CCScale9Sprite::create("GJ_button_01.png");
         answerBg->setContentSize({120.f, 35.f});
         auto answerIcon = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
@@ -121,7 +113,6 @@ protected:
         showAnswerButton->setVisible(false);
         actionMenu->addChild(showAnswerButton);
 
-        // Try It button
         auto tryItBg = CCScale9Sprite::create("GJ_button_04.png");
         tryItBg->setContentSize({100.f, 35.f});
         auto tryItIcon = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
@@ -144,11 +135,9 @@ protected:
 
         m_mainLayer->addChild(actionMenu);
 
-        // Navigation menu
         auto navMenu = CCMenu::create();
         navMenu->setPosition({0, 0});
 
-        // Previous button with modern style
         auto prevBg = CCScale9Sprite::create("GJ_button_02.png");
         prevBg->setContentSize({80.f, 30.f});
         auto prevArrow = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
@@ -189,14 +178,12 @@ protected:
         nextButton->setPosition({510.f, 15.f});
         navMenu->addChild(nextButton);
 
-        // Page indicator
         pageLabel = CCLabelBMFont::create("Page 1/3", "chatFont.fnt");
         pageLabel->setPosition({280.f, 15.f});
         pageLabel->setScale(0.5f);
         pageLabel->setColor({120, 120, 120});
         navMenu->addChild(pageLabel);
 
-        // Close button
         auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
         closeSprite->setScale(0.8f);
         auto closeButton = CCMenuItemSpriteExtra::create(
@@ -218,7 +205,6 @@ protected:
     void createAnimatedBackground() {
         backgroundLayer = CCLayer::create();
         
-        // Create gradient-like background with multiple layers
         for (int i = 0; i < 3; i++) {
             auto bgSprite = CCSprite::create("square02_001.png");
             bgSprite->setScaleX(20.f);
@@ -243,8 +229,7 @@ protected:
             }
             
             backgroundLayer->addChild(bgSprite);
-            
-            // Add subtle animation
+
             auto moveAction = CCMoveBy::create(8.0f + i * 2, {10.f, 5.f});
             auto moveBack = CCMoveBy::create(8.0f + i * 2, {-10.f, -5.f});
             auto sequence = CCSequence::create(moveAction, moveBack, nullptr);
@@ -262,25 +247,21 @@ protected:
         int endChapter = std::min(startChapter + chaptersPerPage - 1, totalChapters);
         
         for (int i = startChapter; i <= endChapter; ++i) {
-            // Create modern button style
             auto buttonBg = CCScale9Sprite::create("GJ_button_05.png");
             buttonBg->setContentSize({120.f, 40.f});
             
-            // Add chapter icon
             auto icon = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
             icon->setScale(0.4f);
             icon->setPosition({20.f, 20.f});
             icon->setColor({255, 215, 0}); // Gold color
             buttonBg->addChild(icon);
             
-            // Chapter title
             auto chapterText = CCLabelBMFont::create(("Chapter " + std::to_string(i)).c_str(), "chatFont.fnt");
             chapterText->setPosition({75.f, 25.f});
             chapterText->setScale(0.45f);
             chapterText->setColor({40, 40, 40});
             buttonBg->addChild(chapterText);
             
-            // Subtitle based on chapter
             std::string subtitle = getChapterSubtitle(i);
             auto subtitleText = CCLabelBMFont::create(subtitle.c_str(), "chatFont.fnt");
             subtitleText->setPosition({75.f, 12.f});
@@ -367,20 +348,25 @@ protected:
     }
 
     void onTryIt(CCObject*) {
-        // Simulate "Try It" functionality
         auto notification = CCLabelBMFont::create("🎉 Great job! You completed the mission!", "chatFont.fnt");
         notification->setPosition({280.f, 200.f});
         notification->setScale(0.6f);
         notification->setColor({0, 150, 0});
         m_mainLayer->addChild(notification);
         
-        // Fade out notification
         auto fadeOut = CCFadeOut::create(2.0f);
-        auto remove = CCCallFunc::create(notification, [](CCNode* node) {
-            node->removeFromParent();
-        });
+        auto remove = CCCallFunc::create(this, callfunc_selector(PythonPopup::removeNotification));
         auto sequence = CCSequence::create(fadeOut, remove, nullptr);
         notification->runAction(sequence);
+        
+        m_currentNotification = notification;
+    }
+
+    void removeNotification() {
+        if (m_currentNotification) {
+            m_currentNotification->removeFromParent();
+            m_currentNotification = nullptr;
+        }
     }
 
     void onChapter(CCObject* sender) {
@@ -395,18 +381,15 @@ protected:
         missionLabel->setString(mission.c_str());
         answerLabel->setString(answer.c_str());
         
-        // Show mission and action buttons
         missionLabel->setVisible(true);
         showAnswerButton->setVisible(true);
         tryItButton->setVisible(true);
         answerLabel->setVisible(false);
         
-        // Update answer button text
         auto answerBg = static_cast<CCScale9Sprite*>(showAnswerButton->getNormalImage());
         auto answerText = static_cast<CCLabelBMFont*>(answerBg->getChildren()->objectAtIndex(1));
         answerText->setString("Show Answer");
 
-        // Adjust content layout
         auto contentSize = contentLabel->getContentSize();
         auto missionSize = missionLabel->getContentSize();
         auto answerSize = answerLabel->getContentSize();
