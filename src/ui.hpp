@@ -94,8 +94,9 @@ protected:
     }
 
  void onClose(CCObject*) override {
-        this->closePopup();
-}
+        this->setKeypadEnabled(false);
+        this->removeFromParentAndCleanup(true);
+    }
 
 public:
     static PythonPopup* create() {
