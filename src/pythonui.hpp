@@ -425,12 +425,131 @@ protected:
                 mission = "🎯 MISSION: Build a Calculator!\n\nCreate a simple calculator that:\n1. Asks for two numbers\n2. Shows their sum, difference, product, and division\n3. Formats the output nicely\n\nExample:\n  Enter first number: 10\n  Enter second number: 3\n  Results:\n    10 + 3 = 13\n    10 - 3 = 7\n    10 × 3 = 30\n    10 ÷ 3 = 3.33";
                 answer = "✅ SOLUTION:\n\n# Get input\nnum1 = float(input('Enter first number: '))\nnum2 = float(input('Enter second number: '))\n\n# Calculate\nsum_result = num1 + num2\ndiff_result = num1 - num2\nproduct_result = num1 * num2\ndiv_result = num1 / num2\n\n# Display results\nprint('Results:')\nprint(f'  {num1} + {num2} = {sum_result}')\nprint(f'  {num1} - {num2} = {diff_result}')\nprint(f'  {num1} × {num2} = {product_result}')\nprint(f'  {num1} ÷ {num2} = {div_result:.2f}')";
                 break;
+            case 4:
+            title = "🔢 Chapter 4: Math & Logic Basics";
+            content = "Explore Python's math operators and logical expressions.\n\nOperators:\n• +, -, *, /\n• // (floor division), % (modulus)\n\nLogical Operators:\n• and, or, not\n\nExample:\nresult = (5 > 3) and (2 < 4)  # True";
+            mission = "🎯 MISSION: Calculate & Compare\n\nWrite a program that calculates the remainder when dividing two numbers.\nThen check if the remainder is zero and print the result.";
+            answer = "✅ SOLUTION:\n\nnum1 = 10\nnum2 = 3\nremainder = num1 % num2\nprint(f'Remainder: {remainder}')\nprint(f'Is divisible? {remainder == 0}')";
+            break;
+
+            case 5:
+            title = "⚖️ Chapter 5: Conditional Statements";
+            content = "Make decisions in your code using if, elif, and else.\n\nExample:\nif score >= 90:\n  print('Excellent')\nelif score >= 75:\n  print('Good')\nelse:\n  print('Keep trying')";
+            mission = "🎯 MISSION: Grade Checker\n\nWrite a program that asks for a grade and prints a message based on the value.";
+            answer = "✅ SOLUTION:\n\ngrade = int(input('Enter your grade: '))\nif grade >= 90:\n  print('Excellent')\nelif grade >= 75:\n  print('Good')\nelse:\n  print('Keep trying')";
+            break;
+
+            case 6:
+            title = "🔄 Chapter 6: Loops - Repetition";
+            content = "Learn how to repeat tasks with for and while loops.\n\nExample for loop:\nfor i in range(5):\n  print(i)";
+            mission = "🎯 MISSION: Loop Practice\n\nWrite a program that prints all even numbers from 2 to 20.";
+            answer = "✅ SOLUTION:\n\nfor num in range(2, 21, 2):\n  print(num)";
+            break;
+
+            case 7:
+            title = "📦 Chapter 7: Lists & Collections";
+            content = "Manage multiple items using lists.\n\nExample:\nnumbers = [1, 2, 3, 4]\nprint(numbers[0])  # 1";
+            mission = "🎯 MISSION: List Manipulation\n\nCreate a list of your favorite fruits and print each one.";
+            answer = "✅ SOLUTION:\n\nfruits = ['apple', 'banana', 'cherry']\nfor fruit in fruits:\n  print(fruit)";
+            break;
+
+            case 8:
+            title = "🔧 Chapter 8: Functions & Reusability";
+            content = "Define reusable blocks of code with functions.\n\nExample:\ndef greet(name):\n  print(f'Hello, {name}!')";
+            mission = "🎯 MISSION: Function Builder\n\nWrite a function that takes a number and returns its square.";
+            answer = "✅ SOLUTION:\n\ndef square(num):\n  return num * num\n\nprint(square(5))";
+            break;
+
+            case 9:
+            title = "📂 Chapter 9: Dictionaries & Key-Value Pairs";
+            content = "Store data as key-value pairs.\n\nExample:\nperson = {'name': 'Alice', 'age': 30}\nprint(person['name'])";
+            mission = "🎯 MISSION: Dictionary Lookup\n\nCreate a dictionary of three countries and their capitals and print each.";
+            answer = "✅ SOLUTION:\n\ncountries = {'USA': 'Washington', 'France': 'Paris', 'Japan': 'Tokyo'}\nfor country, capital in countries.items():\n  print(f'{country}: {capital}')";
+            break;
+
+            case 10:
+            title = "🧩 Chapter 10: Working with Strings";
+            content = "Manipulate text data using strings.\n\nExample:\nname = 'ChatGPT'\nprint(name.upper())";
+            mission = "🎯 MISSION: String Formatter\n\nWrite a program that takes a user input string and prints it reversed.";
+            answer = "✅ SOLUTION:\n\ntext = input('Enter text: ')\nprint(text[::-1])";
+            break;
+
+            case 11:
+            title = "🔍 Chapter 11: File Handling Basics";
+            content = "Read and write files to save data.\n\nExample:\nwith open('file.txt', 'w') as f:\n  f.write('Hello')";
+            mission = "🎯 MISSION: File Writer\n\nWrite a program that saves a user’s input to a file.";
+            answer = "✅ SOLUTION:\n\ntext = input('Enter text to save: ')\nwith open('output.txt', 'w') as f:\n  f.write(text)";
+            break;
+
+            case 12:
+            title = "⚙️ Chapter 12: Error Handling & Exceptions";
+            content = "Make your program robust with try-except blocks.\n\nExample:\ntry:\n  x = 1 / 0\nexcept ZeroDivisionError:\n  print('Cannot divide by zero')";
+            mission = "🎯 MISSION: Safe Division\n\nWrite a program that divides two numbers but handles division by zero gracefully.";
+            answer = "✅ SOLUTION:\n\ntry:\n  num1 = int(input('Enter numerator: '))\n  num2 = int(input('Enter denominator: '))\n  result = num1 / num2\n  print(f'Result: {result}')\nexcept ZeroDivisionError:\n  print('Error: Cannot divide by zero')";
+            break;
+
+            case 13:
+            title = "📐 Chapter 13: Modules & Importing";
+            content = "Reuse code by importing modules.\n\nExample:\nimport math\nprint(math.sqrt(16))";
+            mission = "🎯 MISSION: Module Use\n\nWrite a program that imports random and prints a random number between 1 and 10.";
+            answer = "✅ SOLUTION:\n\nimport random\nprint(random.randint(1, 10))";
+            break;
+
+            case 14:
+            title = "💻 Chapter 14: Object-Oriented Programming";
+            content = "Structure your code with classes and objects.\n\nExample:\nclass Dog:\n  def __init__(self, name):\n    self.name = name";
+            mission = "🎯 MISSION: Class Creation\n\nCreate a class `Car` with attributes and a method to display details.";
+            answer = "✅ SOLUTION:\n\nclass Car:\n  def __init__(self, make, model):\n    self.make = make\n    self.model = model\n  def show(self):\n    print(f'{self.make} {self.model}')\n\ncar = Car('Toyota', 'Corolla')\ncar.show()";
+            break;
+
+            case 15:
+            title = "🔄 Chapter 15: Recursion & Self-Calling Functions";
+            content = "Functions that call themselves to solve problems.\n\nExample:\ndef factorial(n):\n  if n == 0:\n    return 1\n  else:\n    return n * factorial(n-1)";
+            mission = "🎯 MISSION: Recursive Factorial\n\nWrite a recursive function to compute factorial.";
+            answer = "✅ SOLUTION:\n\ndef factorial(n):\n  if n == 0:\n    return 1\n  return n * factorial(n-1)\n\nprint(factorial(5))";
+            break;
+
+            case 16:
+            title = "📊 Chapter 16: Data Analysis Basics";
+            content = "Use Python to analyze simple datasets.\n\nExample:\ndata = [5, 10, 15]\navg = sum(data) / len(data)\nprint(avg)";
+            mission = "🎯 MISSION: Calculate Average\n\nWrite a program to input numbers and calculate their average.";
+            answer = "✅ SOLUTION:\n\nnumbers = list(map(int, input('Enter numbers separated by space: ').split()))\navg = sum(numbers) / len(numbers)\nprint(f'Average: {avg}')";
+            break;
+
+            case 17:
+            title = "🌐 Chapter 17: Web Scraping Intro";
+            content = "Extract data from websites using Python libraries.\n\nExample:\nimport requests\nresponse = requests.get('http://example.com')";
+            mission = "🎯 MISSION: Fetch Title\n\nWrite a program to fetch and print the title of a webpage (using BeautifulSoup).";
+            answer = "✅ SOLUTION:\n\nimport requests\nfrom bs4 import BeautifulSoup\nurl = 'http://example.com'\nresponse = requests.get(url)\nsoup = BeautifulSoup(response.text, 'html.parser')\nprint(soup.title.string)";
+            break;
+
+            case 18:
+            title = "🔐 Chapter 18: Introduction to Encryption";
+            content = "Learn simple data encryption concepts.\n\nExample:\ntext = 'hello'\nencrypted = ''.join(chr(ord(c) + 1) for c in text)";
+            mission = "🎯 MISSION: Caesar Cipher\n\nWrite a program to encrypt a message by shifting letters by 3.";
+            answer = "✅ SOLUTION:\n\nmessage = input('Enter message: ')\nencrypted = ''.join(chr((ord(c) - 65 + 3) % 26 + 65) if c.isupper() else c for c in message)\nprint(encrypted)";
+            break;
+
+            case 19:
+            title = "⚡ Chapter 19: Multithreading Basics";
+            content = "Run multiple threads for concurrency.\n\nExample:\nimport threading\ndef task():\n  print('Thread running')";
+            mission = "🎯 MISSION: Thread Runner\n\nWrite a program that starts two threads running a simple function.";
+            answer = "✅ SOLUTION:\n\nimport threading\n\ndef print_hello():\n  print('Hello from thread')\n\nthread1 = threading.Thread(target=print_hello)\nthread2 = threading.Thread(target=print_hello)\nthread1.start()\nthread2.start()";
+            break;
+
+            case 20:
+            title = "🧠 Chapter 20: Introduction to AI & Machine Learning";
+            content = "Basics of AI with Python libraries.\n\nExample:\nfrom sklearn.linear_model import LinearRegression";
+            mission = "🎯 MISSION: Simple Prediction\n\nWrite a program to train a simple linear regression model and predict a value.";
+            answer = "✅ SOLUTION:\n\nfrom sklearn.linear_model import LinearRegression\nimport numpy as np\n\nX = np.array([[1], [2], [3], [4]])\ny = np.array([2, 4, 6, 8])\nmodel = LinearRegression().fit(X, y)\nprint(model.predict([[5]]))";
+            break;
+
             default:
-                title = "Select a Chapter";
-                content = "🎓 Welcome to Interactive Python Learning!\n\nEach chapter includes:\n• Clear explanations with examples\n• Fun, practical missions\n• Complete solutions\n• Step-by-step guidance\n\nClick any chapter to start your Python journey! 🚀";
-                mission = "";
-                answer = "";
-        }
+            title = "Chapter Not Found";
+            content = "Content for this chapter is not available.";
+            mission = "";
+            answer = "";
+            break;
     }
 
     void onClose(CCObject*) override {
