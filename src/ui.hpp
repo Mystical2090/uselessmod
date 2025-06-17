@@ -8,7 +8,7 @@ protected:
         this->setTitle("Useless Mod");
 
         auto label = CCLabelBMFont::create("Hello from my custom mod!", "bigFont.fnt");
-        m_mainLayer->addChildAtPosition(label, Anchor::Center + Vec2(0, 40));  // slightly up
+        m_mainLayer->addChildAtPosition(label, Anchor::Center + Vec2(0, 40));
 
         auto menu = CCMenu::create();
         menu->setPosition(Vec2::ZERO);
@@ -37,12 +37,12 @@ protected:
 
     void onOk(CCObject*) {
         log::info("OK button clicked");
-        this->close();
+        this->dismiss();
     }
 
     void onCancel(CCObject*) {
         log::info("Cancel button clicked");
-        this->close();
+        this->dismiss();
     }
 
 public:
