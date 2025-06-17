@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
+#include <cocos2d-extension/CCScrollView.h>
 
 using namespace geode::prelude;
 
