@@ -2,7 +2,7 @@
 #include <Geode/ui/Popup.hpp>
 using namespace geode::prelude;
 
-class MyPopup : public geode::Popup<> {
+class PythonPopup : public geode::Popup<> {
 protected:
     CCLabelBMFont* titleLabel;
     CCLabelBMFont* contentLabel;
