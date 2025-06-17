@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
-#include <Geode/Geode.hpp> // useless
+#include <Geode/Geode.hpp>
 #include <Geode/ui/ScrollLayer.hpp>
 
 using namespace geode::prelude;
@@ -10,72 +10,193 @@ class PythonPopup : public geode::Popup<> {
 protected:
     CCLabelBMFont* titleLabel;
     CCLabelBMFont* contentLabel;
+    CCLabelBMFont* missionLabel;
+    CCLabelBMFont* answerLabel;
     ScrollLayer* scrollLayer;
     CCLayer* contentLayer;
+    CCLayer* backgroundLayer;
     CCMenu* chapterMenu;
+    CCMenu* actionMenu;
     CCLabelBMFont* pageLabel;
     CCMenuItemSpriteExtra* prevButton;
     CCMenuItemSpriteExtra* nextButton;
+    CCMenuItemSpriteExtra* showAnswerButton;
+    CCMenuItemSpriteExtra* tryItButton;
     
     int currentPage = 0;
-    static const int chaptersPerPage = 10;
+    int currentChapter = 0;
+    bool showingAnswer = false;
+    static const int chaptersPerPage = 8;
     static const int totalChapters = 20;
 
     bool setup() override {
-        this->setTitle("Python Tutorial");
+        // Create animated background
+        createAnimatedBackground();
+        
+        this->setTitle("Interactive Python Learning");
 
-        titleLabel = CCLabelBMFont::create("Select a Chapter to Begin Learning", "bigFont.fnt");
-        titleLabel->setPosition({280.f, 320.f});
-        titleLabel->setScale(0.6f);
+        // Main title with modern font
+        titleLabel = CCLabelBMFont::create("🐍 Interactive Python Tutorial", "chatFont.fnt");
+        titleLabel->setPosition({280.f, 330.f});
+        titleLabel->setScale(0.8f);
+        titleLabel->setColor({46, 125, 50}); // Python green
         m_mainLayer->addChild(titleLabel);
+
+        // Subtitle
+        auto subtitleLabel = CCLabelBMFont::create("Learn by doing - Complete missions and see solutions!", "chatFont.fnt");
+        subtitleLabel->setPosition({280.f, 310.f});
+        subtitleLabel->setScale(0.5f);
+        subtitleLabel->setColor({100, 100, 100});
+        m_mainLayer->addChild(subtitleLabel);
+
+        // Create scroll area with rounded background
+        auto scrollBg = CCScale9Sprite::create("square02b_001.png");
+        scrollBg->setContentSize({530.f, 190.f});
+        scrollBg->setPosition({280.f, 170.f});
+        scrollBg->setColor({245, 245, 245});
+        scrollBg->setOpacity(220);
+        m_mainLayer->addChild(scrollBg);
 
         scrollLayer = ScrollLayer::create({520.f, 180.f});
         scrollLayer->setPosition({20.f, 80.f});
         
         contentLayer = CCLayer::create();
         
-        contentLabel = CCLabelBMFont::create("Welcome to Python Programming!\n\nPython is a powerful, easy-to-learn programming language.\nIt's great for beginners and used by professionals worldwide.\n\nSelect any chapter to start learning:", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
+        // Welcome content with better formatting
+        contentLabel = CCLabelBMFont::create("🚀 Welcome to Interactive Python Programming!\n\nPython is the world's most popular programming language.\nPerfect for beginners, powerful for experts.\n\n📚 Each chapter includes:\n  • Clear explanations\n  • Hands-on missions\n  • Instant feedback\n\n👆 Select any chapter below to start your journey!", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
         contentLabel->setPosition({260.f, 150.f});
-        contentLabel->setScale(0.6f);
+        contentLabel->setScale(0.65f);
         contentLabel->setAnchorPoint({0.5f, 0.5f});
+        contentLabel->setColor({60, 60, 60});
         contentLayer->addChild(contentLabel);
+
+        // Mission section (initially hidden)
+        missionLabel = CCLabelBMFont::create("", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
+        missionLabel->setPosition({260.f, 80.f});
+        missionLabel->setScale(0.6f);
+        missionLabel->setAnchorPoint({0.5f, 0.5f});
+        missionLabel->setColor({0, 77, 153}); // Blue for missions
+        missionLabel->setVisible(false);
+        contentLayer->addChild(missionLabel);
+
+        // Answer section (initially hidden)
+        answerLabel = CCLabelBMFont::create("", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
+        answerLabel->setPosition({260.f, 50.f});
+        answerLabel->setScale(0.55f);
+        answerLabel->setAnchorPoint({0.5f, 0.5f});
+        answerLabel->setColor({0, 128, 0}); // Green for answers
+        answerLabel->setVisible(false);
+        contentLayer->addChild(answerLabel);
         
         scrollLayer->m_contentLayer->addChild(contentLayer);
         m_mainLayer->addChild(scrollLayer);
 
+        // Chapter menu
         chapterMenu = CCMenu::create();
         chapterMenu->setPosition({0, 0});
         m_mainLayer->addChild(chapterMenu);
 
+        // Action buttons menu
+        actionMenu = CCMenu::create();
+        actionMenu->setPosition({0, 0});
+
+        // Show Answer button
+        auto answerBg = CCScale9Sprite::create("GJ_button_01.png");
+        answerBg->setContentSize({120.f, 35.f});
+        auto answerIcon = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
+        answerIcon->setScale(0.6f);
+        answerIcon->setPosition({15.f, 17.5f});
+        answerBg->addChild(answerIcon);
+        auto answerText = CCLabelBMFont::create("Show Answer", "chatFont.fnt");
+        answerText->setPosition({75.f, 17.5f});
+        answerText->setScale(0.5f);
+        answerBg->addChild(answerText);
+        
+        showAnswerButton = CCMenuItemSpriteExtra::create(
+            answerBg,
+            this,
+            menu_selector(PythonPopup::onShowAnswer)
+        );
+        showAnswerButton->setPosition({150.f, 40.f});
+        showAnswerButton->setVisible(false);
+        actionMenu->addChild(showAnswerButton);
+
+        // Try It button
+        auto tryItBg = CCScale9Sprite::create("GJ_button_04.png");
+        tryItBg->setContentSize({100.f, 35.f});
+        auto tryItIcon = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
+        tryItIcon->setScale(0.5f);
+        tryItIcon->setPosition({15.f, 17.5f});
+        tryItBg->addChild(tryItIcon);
+        auto tryItText = CCLabelBMFont::create("Try It!", "chatFont.fnt");
+        tryItText->setPosition({65.f, 17.5f});
+        tryItText->setScale(0.5f);
+        tryItBg->addChild(tryItText);
+        
+        tryItButton = CCMenuItemSpriteExtra::create(
+            tryItBg,
+            this,
+            menu_selector(PythonPopup::onTryIt)
+        );
+        tryItButton->setPosition({400.f, 40.f});
+        tryItButton->setVisible(false);
+        actionMenu->addChild(tryItButton);
+
+        m_mainLayer->addChild(actionMenu);
+
+        // Navigation menu
         auto navMenu = CCMenu::create();
         navMenu->setPosition({0, 0});
 
-        auto prevSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
-        prevSprite->setFlipX(true);
-        prevSprite->setScale(0.7f);
+        // Previous button with modern style
+        auto prevBg = CCScale9Sprite::create("GJ_button_02.png");
+        prevBg->setContentSize({80.f, 30.f});
+        auto prevArrow = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+        prevArrow->setFlipX(true);
+        prevArrow->setScale(0.6f);
+        prevArrow->setPosition({25.f, 15.f});
+        prevBg->addChild(prevArrow);
+        auto prevText = CCLabelBMFont::create("Prev", "chatFont.fnt");
+        prevText->setPosition({55.f, 15.f});
+        prevText->setScale(0.4f);
+        prevBg->addChild(prevText);
+        
         prevButton = CCMenuItemSpriteExtra::create(
-            prevSprite,
+            prevBg,
             this,
             menu_selector(PythonPopup::onPrevPage)
         );
-        prevButton->setPosition({50.f, 40.f});
+        prevButton->setPosition({50.f, 15.f});
         navMenu->addChild(prevButton);
 
-        auto nextSprite = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
-        nextSprite->setScale(0.7f);
+        // Next button
+        auto nextBg = CCScale9Sprite::create("GJ_button_02.png");
+        nextBg->setContentSize({80.f, 30.f});
+        auto nextArrow = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
+        nextArrow->setScale(0.6f);
+        nextArrow->setPosition({55.f, 15.f});
+        nextBg->addChild(nextArrow);
+        auto nextText = CCLabelBMFont::create("Next", "chatFont.fnt");
+        nextText->setPosition({25.f, 15.f});
+        nextText->setScale(0.4f);
+        nextBg->addChild(nextText);
+        
         nextButton = CCMenuItemSpriteExtra::create(
-            nextSprite,
+            nextBg,
             this,
             menu_selector(PythonPopup::onNextPage)
         );
-        nextButton->setPosition({510.f, 40.f});
+        nextButton->setPosition({510.f, 15.f});
         navMenu->addChild(nextButton);
 
-        pageLabel = CCLabelBMFont::create("Page 1/2", "goldFont.fnt");
-        pageLabel->setPosition({280.f, 40.f});
+        // Page indicator
+        pageLabel = CCLabelBMFont::create("Page 1/3", "chatFont.fnt");
+        pageLabel->setPosition({280.f, 15.f});
         pageLabel->setScale(0.5f);
-        m_mainLayer->addChild(pageLabel);
+        pageLabel->setColor({120, 120, 120});
+        navMenu->addChild(pageLabel);
 
+        // Close button
         auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
         closeSprite->setScale(0.8f);
         auto closeButton = CCMenuItemSpriteExtra::create(
@@ -83,7 +204,7 @@ protected:
             this, 
             menu_selector(PythonPopup::onClose)
         );
-        closeButton->setPosition({520.f, 320.f});
+        closeButton->setPosition({530.f, 330.f});
         navMenu->addChild(closeButton);
 
         m_mainLayer->addChild(navMenu);
@@ -94,6 +215,46 @@ protected:
         return true;
     }
 
+    void createAnimatedBackground() {
+        backgroundLayer = CCLayer::create();
+        
+        // Create gradient-like background with multiple layers
+        for (int i = 0; i < 3; i++) {
+            auto bgSprite = CCSprite::create("square02_001.png");
+            bgSprite->setScaleX(20.f);
+            bgSprite->setScaleY(15.f);
+            bgSprite->setPosition({280.f, 180.f});
+            
+            switch(i) {
+                case 0:
+                    bgSprite->setColor({240, 248, 255}); // Light blue
+                    bgSprite->setOpacity(100);
+                    break;
+                case 1:
+                    bgSprite->setColor({230, 245, 255}); // Slightly darker
+                    bgSprite->setOpacity(80);
+                    bgSprite->setScale(bgSprite->getScale() * 0.9f);
+                    break;
+                case 2:
+                    bgSprite->setColor({220, 240, 255}); // Even darker
+                    bgSprite->setOpacity(60);
+                    bgSprite->setScale(bgSprite->getScale() * 0.8f);
+                    break;
+            }
+            
+            backgroundLayer->addChild(bgSprite);
+            
+            // Add subtle animation
+            auto moveAction = CCMoveBy::create(8.0f + i * 2, {10.f, 5.f});
+            auto moveBack = CCMoveBy::create(8.0f + i * 2, {-10.f, -5.f});
+            auto sequence = CCSequence::create(moveAction, moveBack, nullptr);
+            auto repeat = CCRepeatForever::create(sequence);
+            bgSprite->runAction(repeat);
+        }
+        
+        m_mainLayer->addChild(backgroundLayer, -1);
+    }
+
     void updateChapterButtons() {
         chapterMenu->removeAllChildren();
         
@@ -101,20 +262,70 @@ protected:
         int endChapter = std::min(startChapter + chaptersPerPage - 1, totalChapters);
         
         for (int i = startChapter; i <= endChapter; ++i) {
-            auto normalSprite = ButtonSprite::create(("Ch." + std::to_string(i)).c_str(), "goldFont.fnt", "GJ_button_04.png");
-            normalSprite->setScale(0.4f); // Smaller buttons
+            // Create modern button style
+            auto buttonBg = CCScale9Sprite::create("GJ_button_05.png");
+            buttonBg->setContentSize({120.f, 40.f});
+            
+            // Add chapter icon
+            auto icon = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
+            icon->setScale(0.4f);
+            icon->setPosition({20.f, 20.f});
+            icon->setColor({255, 215, 0}); // Gold color
+            buttonBg->addChild(icon);
+            
+            // Chapter title
+            auto chapterText = CCLabelBMFont::create(("Chapter " + std::to_string(i)).c_str(), "chatFont.fnt");
+            chapterText->setPosition({75.f, 25.f});
+            chapterText->setScale(0.45f);
+            chapterText->setColor({40, 40, 40});
+            buttonBg->addChild(chapterText);
+            
+            // Subtitle based on chapter
+            std::string subtitle = getChapterSubtitle(i);
+            auto subtitleText = CCLabelBMFont::create(subtitle.c_str(), "chatFont.fnt");
+            subtitleText->setPosition({75.f, 12.f});
+            subtitleText->setScale(0.35f);
+            subtitleText->setColor({100, 100, 100});
+            buttonBg->addChild(subtitleText);
+            
             auto button = CCMenuItemSpriteExtra::create(
-                normalSprite,
+                buttonBg,
                 this,
                 menu_selector(PythonPopup::onChapter)
             );
             button->setTag(i);
 
             int buttonIndex = i - startChapter;
-            float x = 80.f + (buttonIndex % 5) * 100.f;
-            float y = 300.f - (buttonIndex / 5) * 30.f;
+            float x = 80.f + (buttonIndex % 4) * 130.f;
+            float y = 300.f - (buttonIndex / 4) * 50.f;
             button->setPosition({x, y});
             chapterMenu->addChild(button);
+        }
+    }
+
+    std::string getChapterSubtitle(int chapter) {
+        switch (chapter) {
+            case 1: return "Getting Started";
+            case 2: return "Store Data";
+            case 3: return "User Interaction";
+            case 4: return "Math & Logic";
+            case 5: return "Make Decisions";
+            case 6: return "Repeat Actions";
+            case 7: return "Collect Items";
+            case 8: return "Key-Value Pairs";
+            case 9: return "Reusable Code";
+            case 10: return "Text Processing";
+            case 11: return "Read & Write";
+            case 12: return "Handle Errors";
+            case 13: return "Objects & Classes";
+            case 14: return "Import Libraries";
+            case 15: return "Smart Lists";
+            case 16: return "Quick Functions";
+            case 17: return "Code Enhancers";
+            case 18: return "Web Requests";
+            case 19: return "Project Setup";
+            case 20: return "Best Practices";
+            default: return "Learn Python";
         }
     }
 
@@ -144,105 +355,99 @@ protected:
         }
     }
 
-    void onChapter(CCObject* sender) {
-        int chapter = static_cast<CCNode*>(sender)->getTag();
-        std::string title, content;
+    void onShowAnswer(CCObject*) {
+        showingAnswer = !showingAnswer;
+        answerLabel->setVisible(showingAnswer);
         
-        switch (chapter) {
-            case 1:
-                title = "Chapter 1: Introduction & Installation";
-                content = "What is Python?\n• High-level programming language\n• Easy to read and write\n• Used for web dev, AI, data science\n\nInstalling Python:\n1. Go to python.org\n2. Download latest version\n3. Run installer\n4. Check 'Add to PATH'\n\nFirst Program:\nprint('Hello, World!')\n\nRunning Code:\n• Save as .py file\n• Run: python filename.py\n• Or use IDLE/IDE";
-                break;
-            case 2:
-                title = "Chapter 2: Variables & Data Types";
-                content = "Variables store data:\n# Numbers\nage = 25\nheight = 5.9\n# Text\nname = 'Alice'\ncity = \"New York\"\n# Boolean\nis_student = True\n\nData Types:\n• int: whole numbers (42)\n• float: decimals (3.14)\n• str: text ('hello')\n• bool: True/False\n• list: [1, 2, 3]\n• dict: {'key': 'value'}\n\nChecking Type:\nprint(type(age))  # <class 'int'>";
-                break;
-            case 3:
-                title = "Chapter 3: Input & Output";
-                content = "Getting User Input:\nname = input('Enter your name: ')\nage = int(input('Enter age: '))\n\nPrint Function:\nprint('Hello', name)\nprint(f'You are {age} years old')\n\nFormatting:\n# f-strings (recommended)\nprint(f'{name} is {age}')\n# .format() method\nprint('{} is {}'.format(name, age))\n# % formatting\nprint('%s is %d' % (name, age))\n\nSpecial Characters:\nprint('Line 1\\nLine 2')  # New line\nprint('Tab\\there')      # Tab";
-                break;
-            case 4:
-                title = "Chapter 4: Operators";
-                content = "Arithmetic Operators:\n+ (add), - (subtract), * (multiply)\n/ (divide), // (floor divide)\n% (modulo), ** (power)\n\nExamples:\nprint(10 + 3)   # 13\nprint(10 / 3)   # 3.333...\nprint(10 // 3)  # 3\nprint(10 % 3)   # 1\nprint(2 ** 3)   # 8\n\nComparison:\n== (equal), != (not equal)\n< > <= >= (comparison)\n\nLogical:\nand, or, not\n\nAssignment:\n=, +=, -=, *=, /=";
-                break;
-            case 5:
-                title = "Chapter 5: Conditional Statements";
-                content = "if Statement:\nage = 18\nif age >= 18:\n    print('Adult')\n\nif-else:\nif age >= 18:\n    print('Adult')\nelse:\n    print('Minor')\n\nif-elif-else:\nscore = 85\nif score >= 90:\n    grade = 'A'\nelif score >= 80:\n    grade = 'B'\nelif score >= 70:\n    grade = 'C'\nelse:\n    grade = 'F'\n\nNested if:\nif age >= 18:\n    if has_license:\n        print('Can drive')";
-                break;
-            case 6:
-                title = "Chapter 6: Loops";
-                content = "for Loop:\n# Range\nfor i in range(5):\n    print(i)  # 0,1,2,3,4\n\n# List iteration\nfruits = ['apple', 'banana']\nfor fruit in fruits:\n    print(fruit)\n\nwhile Loop:\ncount = 0\nwhile count < 5:\n    print(count)\n    count += 1\n\nLoop Control:\nbreak    # Exit loop\ncontinue # Skip iteration\n\nfor i in range(10):\n    if i == 3:\n        continue\n    if i == 8:\n        break\n    print(i)";
-                break;
-            case 7:
-                title = "Chapter 7: Lists";
-                content = "Creating Lists:\nfruits = ['apple', 'banana', 'orange']\nnumbers = [1, 2, 3, 4, 5]\nmixed = [1, 'hello', True, 3.14]\n\nAccessing Elements:\nprint(fruits[0])     # apple\nprint(fruits[-1])    # orange (last)\n\nList Methods:\nfruits.append('grape')    # Add to end\nfruits.insert(1, 'kiwi')  # Insert at position\nfruits.remove('banana')   # Remove item\npopped = fruits.pop()     # Remove & return last\n\nSlicing:\nprint(fruits[1:3])   # Elements 1-2\nprint(fruits[:2])    # First 2\nprint(fruits[2:])    # From index 2";
-                break;
-            case 8:
-                title = "Chapter 8: Dictionaries";
-                content = "Creating Dictionaries:\nperson = {\n    'name': 'Alice',\n    'age': 30,\n    'city': 'NYC'\n}\n\nAccessing Values:\nprint(person['name'])     # Alice\nprint(person.get('age')) # 30\n\nModifying:\nperson['age'] = 31       # Update\nperson['job'] = 'Engineer' # Add new\ndel person['city']       # Delete\n\nDictionary Methods:\nkeys = person.keys()     # Get all keys\nvalues = person.values() # Get all values\nitems = person.items()   # Get key-value pairs\n\nLooping:\nfor key, value in person.items():\n    print(f'{key}: {value}')";
-                break;
-            case 9:
-                title = "Chapter 9: Functions";
-                content = "Defining Functions:\ndef greet(name):\n    return f'Hello, {name}!'\n\n# Calling function\nmessage = greet('Alice')\nprint(message)\n\nParameters:\ndef add(a, b):\n    return a + b\n\nresult = add(5, 3)  # 8\n\nDefault Parameters:\ndef greet(name, greeting='Hello'):\n    return f'{greeting}, {name}!'\n\ngreet('Bob')              # Hello, Bob!\ngreet('Bob', 'Hi')        # Hi, Bob!\n\nMultiple Returns:\ndef get_name_age():\n    return 'Alice', 25\n\nname, age = get_name_age()";
-                break;
-            case 10:
-                title = "Chapter 10: String Methods";
-                content = "Common String Methods:\ntext = 'Hello World'\n\n# Case methods\nprint(text.upper())      # HELLO WORLD\nprint(text.lower())      # hello world\nprint(text.title())      # Hello World\nprint(text.capitalize()) # Hello world\n\n# Search methods\nprint(text.find('World'))    # 6\nprint(text.count('l'))       # 3\nprint(text.startswith('H'))  # True\nprint(text.endswith('d'))    # True\n\n# Modify methods\nprint(text.replace('World', 'Python'))  # Hello Python\nprint(text.strip())          # Remove whitespace\n\n# Split/Join\nwords = text.split()         # ['Hello', 'World']\njoined = '-'.join(words)     # Hello-World";
-                break;
-            case 11:
-                title = "Chapter 11: File Handling";
-                content = "Reading Files:\n# Method 1\nwith open('file.txt', 'r') as f:\n    content = f.read()\n    print(content)\n\n# Method 2 - Line by line\nwith open('file.txt', 'r') as f:\n    for line in f:\n        print(line.strip())\n\nWriting Files:\nwith open('output.txt', 'w') as f:\n    f.write('Hello World\\n')\n    f.write('Python is awesome!')\n\nAppending:\nwith open('log.txt', 'a') as f:\n    f.write('New entry\\n')\n\nFile Modes:\n'r' - Read only\n'w' - Write (overwrites)\n'a' - Append\n'r+' - Read and write";
-                break;
-            case 12:
-                title = "Chapter 12: Exception Handling";
-                content = "try-except:\ntry:\n    num = int(input('Enter number: '))\n    result = 10 / num\n    print(f'Result: {result}')\nexcept ValueError:\n    print('Invalid number!')\nexcept ZeroDivisionError:\n    print('Cannot divide by zero!')\n\nMultiple Exceptions:\ntry:\n    # risky code\n    pass\nexcept (ValueError, TypeError):\n    print('Invalid input!')\n\nGeneral Exception:\ntry:\n    # code\n    pass\nexcept Exception as e:\n    print(f'Error: {e}')\nfinally:\n    print('Always runs')";
-                break;
-            case 13:
-                title = "Chapter 13: Classes & Objects";
-                content = "Defining Classes:\nclass Dog:\n    def __init__(self, name, breed):\n        self.name = name\n        self.breed = breed\n        self.age = 0\n    \n    def bark(self):\n        return f'{self.name} says Woof!'\n    \n    def birthday(self):\n        self.age += 1\n\nCreating Objects:\nmy_dog = Dog('Buddy', 'Golden Retriever')\nprint(my_dog.bark())     # Buddy says Woof!\nmy_dog.birthday()\nprint(my_dog.age)        # 1\n\nClass vs Instance Variables:\nclass Cat:\n    species = 'Feline'  # Class variable\n    \n    def __init__(self, name):\n        self.name = name    # Instance variable";
-                break;
-            case 14:
-                title = "Chapter 14: Modules & Packages";
-                content = "Importing Modules:\nimport math\nprint(math.sqrt(16))     # 4.0\nprint(math.pi)           # 3.14159...\n\n# Import specific functions\nfrom math import sqrt, pi\nprint(sqrt(25))          # 5.0\n\n# Import with alias\nimport math as m\nprint(m.cos(0))          # 1.0\n\nUseful Built-in Modules:\nimport random\nprint(random.randint(1, 10))\n\nimport datetime\nnow = datetime.datetime.now()\nprint(now)\n\nimport os\nprint(os.getcwd())       # Current directory\n\nCreating Your Own Module:\n# Save as mymodule.py\ndef my_function():\n    return 'Hello from module!'\n\n# In another file\nimport mymodule\nprint(mymodule.my_function())";
-                break;
-            case 15:
-                title = "Chapter 15: List Comprehensions";
-                content = "Basic List Comprehension:\n# Traditional way\nsquares = []\nfor x in range(10):\n    squares.append(x**2)\n\n# List comprehension\nsquares = [x**2 for x in range(10)]\nprint(squares)  # [0,1,4,9,16,25,36,49,64,81]\n\nWith Conditions:\n# Even squares only\neven_squares = [x**2 for x in range(10) if x % 2 == 0]\nprint(even_squares)  # [0,4,16,36,64]\n\n# String processing\nwords = ['hello', 'world', 'python']\ncapitalized = [word.upper() for word in words]\nprint(capitalized)  # ['HELLO', 'WORLD', 'PYTHON']\n\nNested Comprehensions:\nmatrix = [[i*j for j in range(3)] for i in range(3)]\nprint(matrix)  # [[0,0,0], [0,1,2], [0,2,4]]";
-                break;
-            case 16:
-                title = "Chapter 16: Lambda Functions";
-                content = "Lambda Functions (Anonymous):\n# Regular function\ndef square(x):\n    return x ** 2\n\n# Lambda equivalent\nsquare = lambda x: x ** 2\nprint(square(5))  # 25\n\nWith Built-in Functions:\nnumbers = [1, 2, 3, 4, 5]\n\n# map() - apply function to all items\nsquared = list(map(lambda x: x**2, numbers))\nprint(squared)  # [1, 4, 9, 16, 25]\n\n# filter() - filter items\neven = list(filter(lambda x: x % 2 == 0, numbers))\nprint(even)  # [2, 4]\n\n# sorted() with key\nstudents = [('Alice', 85), ('Bob', 92), ('Charlie', 78)]\nsorted_by_grade = sorted(students, key=lambda x: x[1])\nprint(sorted_by_grade)";
-                break;
-            case 17:
-                title = "Chapter 17: Decorators";
-                content = "Basic Decorator:\ndef my_decorator(func):\n    def wrapper():\n        print('Before function')\n        func()\n        print('After function')\n    return wrapper\n\n@my_decorator\ndef greet():\n    print('Hello!')\n\ngreet()\n# Output:\n# Before function\n# Hello!\n# After function\n\nDecorator with Arguments:\ndef repeat(times):\n    def decorator(func):\n        def wrapper(*args, **kwargs):\n            for _ in range(times):\n                result = func(*args, **kwargs)\n            return result\n        return wrapper\n    return decorator\n\n@repeat(3)\ndef say_hello():\n    print('Hello!')\n\nsay_hello()  # Prints Hello! 3 times";
-                break;
-            case 18:
-                title = "Chapter 18: Working with APIs";
-                content = "Using requests library:\nimport requests\n\n# GET request\nresponse = requests.get('https://api.github.com/users/octocat')\nif response.status_code == 200:\n    data = response.json()\n    print(data['name'])\nelse:\n    print('Error:', response.status_code)\n\n# POST request\ndata = {'name': 'John', 'email': 'john@example.com'}\nresponse = requests.post('https://httpbin.org/post', json=data)\nprint(response.json())\n\n# Headers\nheaders = {'Authorization': 'Bearer token123'}\nresponse = requests.get('https://api.example.com/data', headers=headers)\n\nNote: Install requests first:\npip install requests";
-                break;
-            case 19:
-                title = "Chapter 19: Virtual Environments";
-                content = "Why Virtual Environments?\n• Isolate project dependencies\n• Avoid version conflicts\n• Clean project setup\n\nCreating Virtual Environment:\n# Using venv (Python 3.3+)\npython -m venv myenv\n\n# Activate (Windows)\nmyenv\\Scripts\\activate\n# Activate (Mac/Linux)\nsource myenv/bin/activate\n\n# Deactivate\ndeactivate\n\nManaging Packages:\n# Install package\npip install requests\n\n# List installed packages\npip list\n\n# Save requirements\npip freeze > requirements.txt\n\n# Install from requirements\npip install -r requirements.txt\n\nBest Practices:\n• One virtual env per project\n• Always activate before working\n• Keep requirements.txt updated";
-                break;
-            case 20:
-                title = "Chapter 20: Best Practices & Next Steps";
-                content = "Python Best Practices:\n\n1. Code Style (PEP 8):\n• Use 4 spaces for indentation\n• Keep lines under 79 characters\n• Use snake_case for variables\n• Use CamelCase for classes\n\n2. Documentation:\n• Write docstrings for functions\n• Comment complex logic\n• Use meaningful variable names\n\n3. Error Handling:\n• Use specific exceptions\n• Don't ignore errors\n• Log important information\n\nNext Steps:\n• Web Development: Django, Flask\n• Data Science: pandas, numpy, matplotlib\n• Machine Learning: scikit-learn, TensorFlow\n• Automation: selenium, requests\n• Desktop GUI: tkinter, PyQt\n• Game Development: pygame\n\nResources:\n• python.org - Official docs\n• Real Python - Tutorials\n• GitHub - Open source projects\n• Stack Overflow - Q&A";
-                break;
-            default:
-                title = "Select a Chapter";
-                content = "Welcome to Python Programming!\n\nThis comprehensive tutorial covers everything you need to know.\nClick any chapter button to begin learning!";
-        }
+        auto answerBg = static_cast<CCScale9Sprite*>(showAnswerButton->getNormalImage());
+        auto answerText = static_cast<CCLabelBMFont*>(answerBg->getChildren()->objectAtIndex(1));
+        answerText->setString(showingAnswer ? "Hide Answer" : "Show Answer");
+        
+        scrollLayer->scrollToTop();
+    }
+
+    void onTryIt(CCObject*) {
+        // Simulate "Try It" functionality
+        auto notification = CCLabelBMFont::create("🎉 Great job! You completed the mission!", "chatFont.fnt");
+        notification->setPosition({280.f, 200.f});
+        notification->setScale(0.6f);
+        notification->setColor({0, 150, 0});
+        m_mainLayer->addChild(notification);
+        
+        // Fade out notification
+        auto fadeOut = CCFadeOut::create(2.0f);
+        auto remove = CCCallFunc::create(notification, [](CCNode* node) {
+            node->removeFromParent();
+        });
+        auto sequence = CCSequence::create(fadeOut, remove, nullptr);
+        notification->runAction(sequence);
+    }
+
+    void onChapter(CCObject* sender) {
+        currentChapter = static_cast<CCNode*>(sender)->getTag();
+        showingAnswer = false;
+        std::string title, content, mission, answer;
+        
+        getChapterContent(currentChapter, title, content, mission, answer);
         
         titleLabel->setString(title.c_str());
         contentLabel->setString(content.c_str());
+        missionLabel->setString(mission.c_str());
+        answerLabel->setString(answer.c_str());
+        
+        // Show mission and action buttons
+        missionLabel->setVisible(true);
+        showAnswerButton->setVisible(true);
+        tryItButton->setVisible(true);
+        answerLabel->setVisible(false);
+        
+        // Update answer button text
+        auto answerBg = static_cast<CCScale9Sprite*>(showAnswerButton->getNormalImage());
+        auto answerText = static_cast<CCLabelBMFont*>(answerBg->getChildren()->objectAtIndex(1));
+        answerText->setString("Show Answer");
 
+        // Adjust content layout
         auto contentSize = contentLabel->getContentSize();
-        scrollLayer->m_contentLayer->setContentSize({520.f, contentSize.height + 50.f});
-        contentLayer->setContentSize({520.f, contentSize.height + 50.f});
-        contentLabel->setPosition({260.f, contentSize.height / 2 + 25.f});
+        auto missionSize = missionLabel->getContentSize();
+        auto answerSize = answerLabel->getContentSize();
+        
+        float totalHeight = contentSize.height + missionSize.height + answerSize.height + 150.f;
+        scrollLayer->m_contentLayer->setContentSize({520.f, totalHeight});
+        contentLayer->setContentSize({520.f, totalHeight});
+        
+        contentLabel->setPosition({260.f, totalHeight - contentSize.height / 2 - 25.f});
+        missionLabel->setPosition({260.f, totalHeight - contentSize.height - missionSize.height / 2 - 75.f});
+        answerLabel->setPosition({260.f, totalHeight - contentSize.height - missionSize.height - answerSize.height / 2 - 125.f});
         
         scrollLayer->scrollToTop();
+    }
+
+    void getChapterContent(int chapter, std::string& title, std::string& content, std::string& mission, std::string& answer) {
+        switch (chapter) {
+            case 1:
+                title = "🚀 Chapter 1: Introduction & Installation";
+                content = "Welcome to Python! 🐍\n\nPython is a high-level programming language that's:\n• Easy to read and write\n• Perfect for beginners\n• Used by companies like Google, Netflix, Instagram\n• Great for web development, AI, and data science\n\nInstalling Python:\n1. Visit python.org\n2. Download the latest version (3.11+)\n3. Run installer and check 'Add Python to PATH'\n4. Verify: Open terminal, type 'python --version'\n\nYour First Program:\nprint('Hello, World!')";
+                mission = "🎯 MISSION: Write Your First Program!\n\nCreate a program that prints your name and favorite hobby.\nExample output:\n  Hello, my name is Alex\n  I love coding!\n\nHint: Use the print() function twice!";
+                answer = "✅ SOLUTION:\n\nprint('Hello, my name is Alex')\nprint('I love coding!')\n\n# You can also use variables:\nname = 'Alex'\nhobby = 'coding'\nprint(f'Hello, my name is {name}')\nprint(f'I love {hobby}!')";
+                break;
+            case 2:
+                title = "📦 Chapter 2: Variables & Data Types";
+                content = "Variables are containers for storing data! 📦\n\nBasic Data Types:\n• int: Whole numbers (42, -17, 0)\n• float: Decimal numbers (3.14, -2.5)\n• str: Text ('Hello', \"Python\")\n• bool: True or False\n\nCreating Variables:\nage = 25          # Integer\nheight = 5.9      # Float\nname = 'Alice'    # String\nis_student = True # Boolean\n\nPython is dynamically typed - no need to declare types!\n\nChecking Types:\nprint(type(age))    # <class 'int'>\nprint(type(name))   # <class 'str'>";
+                mission = "🎯 MISSION: Create a Profile!\n\nCreate variables for:\n• Your name (string)\n• Your age (integer)\n• Your height in meters (float)\n• Whether you like pizza (boolean)\n\nThen print all variables with their types.\n\nBonus: Calculate your age in days (age * 365)!";
+                answer = "✅ SOLUTION:\n\nname = 'Sarah'\nage = 22\nheight = 1.65\nlikes_pizza = True\n\nprint(f'Name: {name} (type: {type(name)})')\nprint(f'Age: {age} (type: {type(age)})')\nprint(f'Height: {height}m (type: {type(height)})')\nprint(f'Likes pizza: {likes_pizza} (type: {type(likes_pizza)})')\n\n# Bonus:\nage_in_days = age * 365\nprint(f'Age in days: {age_in_days}')";
+                break;
+            case 3:
+                title = "💬 Chapter 3: Input & Output";
+                content = "Let's make interactive programs! 💬\n\nGetting User Input:\nname = input('What is your name? ')\nage = int(input('How old are you? '))\n\nNote: input() always returns a string!\nUse int(), float(), bool() to convert.\n\nPowerful Print Formatting:\n# f-strings (modern way)\nprint(f'Hello {name}, you are {age} years old!')\n\n# .format() method\nprint('Hello {}, you are {} years old!'.format(name, age))\n\n# Multiple values\nprint('Name:', name, 'Age:', age)\n\nSpecial Characters:\n\\n = new line\n\\t = tab\n\\' = single quote\n\\\" = double quote";
+                mission = "🎯 MISSION: Build a Calculator!\n\nCreate a simple calculator that:\n1. Asks for two numbers\n2. Shows their sum, difference, product, and division\n3. Formats the output nicely\n\nExample:\n  Enter first number: 10\n  Enter second number: 3\n  Results:\n    10 + 3 = 13\n    10 - 3 = 7\n    10 × 3 = 30\n    10 ÷ 3 = 3.33";
+                answer = "✅ SOLUTION:\n\n# Get input\nnum1 = float(input('Enter first number: '))\nnum2 = float(input('Enter second number: '))\n\n# Calculate\nsum_result = num1 + num2\ndiff_result = num1 - num2\nproduct_result = num1 * num2\ndiv_result = num1 / num2\n\n# Display results\nprint('Results:')\nprint(f'  {num1} + {num2} = {sum_result}')\nprint(f'  {num1} - {num2} = {diff_result}')\nprint(f'  {num1} × {num2} = {product_result}')\nprint(f'  {num1} ÷ {num2} = {div_result:.2f}')";
+                break;
+            default:
+                title = "Select a Chapter";
+                content = "🎓 Welcome to Interactive Python Learning!\n\nEach chapter includes:\n• Clear explanations with examples\n• Fun, practical missions\n• Complete solutions\n• Step-by-step guidance\n\nClick any chapter to start your Python journey! 🚀";
+                mission = "";
+                answer = "";
+        }
     }
 
     void onClose(CCObject*) override {
@@ -253,7 +458,7 @@ protected:
 public:
     static PythonPopup* create() {
         auto ret = new PythonPopup();
-        if (ret->initAnchored(560.f, 360.f)) { // Smaller popup size
+        if (ret->initAnchored(560.f, 360.f)) {
             ret->autorelease();
             return ret;
         }
