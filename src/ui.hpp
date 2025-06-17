@@ -4,45 +4,41 @@ using namespace geode::prelude;
 
 class MyPopup : public geode::Popup<> {
 protected:
-    bool setup() override {
-        this->setTitle("Useless Mod");
+    CCLabelBMFont* m_label = nullptr;
 
-        auto label = CCLabelBMFont::create("Hello from my custom mod!", "bigFont.fnt");
-        m_mainLayer->addChildAtPosition(label, Anchor::Center + Vec2(0, 40));
+    bool setup() override {
+        this->setTitle("useless mod");
+
+        m_label = CCLabelBMFont::create("useless mod", "bigFont.fnt");
+        m_label->setPosition({160, 140});
+        m_mainLayer->addChild(m_label);
 
         auto menu = CCMenu::create();
-        menu->setPosition(Vec2::ZERO);
+        menu->setPosition({0, 0});
         m_mainLayer->addChild(menu);
 
-        auto okSprite = CCSprite::createWithSpriteFrameName("GJ_button_01.png");
-        auto okButton = CCMenuItemSpriteExtra::create(okSprite, this, menu_selector(MyPopup::onOk));
-        okButton->setPosition(Vec2(120, 40));
-        menu->addChild(okButton);
+        auto buttonSprite = ButtonSprite::create(" Useless Mod ");
+        buttonSprite->setScale(0.9f);
+        buttonSprite->setZOrder(0);
+        buttonSprite->setContentSize({150.f, buttonSprite->getContentSize().height});
 
-        auto okLabel = CCLabelBMFont::create("OK", "bigFont.fnt");
-        okLabel->setPosition(okButton->getPosition());
-        m_mainLayer->addChild(okLabel);
-
-        auto cancelSprite = CCSprite::createWithSpriteFrameName("GJ_button_01.png");
-        auto cancelButton = CCMenuItemSpriteExtra::create(cancelSprite, this, menu_selector(MyPopup::onCancel));
-        cancelButton->setPosition(Vec2(240, 40));
-        menu->addChild(cancelButton);
-
-        auto cancelLabel = CCLabelBMFont::create("Cancel", "bigFont.fnt");
-        cancelLabel->setPosition(cancelButton->getPosition());
-        m_mainLayer->addChild(cancelLabel);
+        auto button = CCMenuItemSpriteExtra::create(
+            buttonSprite,
+            buttonSprite,
+            this,
+            menu_selector(MyPopup::onButtonClick)
+        );
+        button->setPosition({160, 40});
+        menu->addChild(button);
 
         return true;
     }
 
-    void onOk(CCObject*) {
-        log::info("OK button clicked");
-        this->dismiss();
-    }
-
-    void onCancel(CCObject*) {
-        log::info("Cancel button clicked");
-        this->dismiss();
+    void onButtonClick(CCObject*) {
+        this->setTitle("Useless Mod");
+        if (m_label) {
+            m_label->setString("Useless Mod");
+        }
     }
 
 public:
