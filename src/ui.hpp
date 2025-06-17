@@ -24,6 +24,7 @@ protected:
         auto menu = CCMenu::create();
         menu->setPosition({0, 0});
 
+        // Chapter buttons (1-10)
         for (int i = 1; i <= 10; ++i) {
             auto label = CCLabelBMFont::create(("Ch. " + std::to_string(i)).c_str(), "bigFont.fnt");
             auto button = CCMenuItemLabel::create(label, this, menu_selector(PythonPopup::onChapter));
@@ -34,13 +35,14 @@ protected:
             menu->addChild(button);
         }
 
+        // Close button with sprite for better GD integration
         auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
         auto closeButton = CCMenuItemSpriteExtra::create(
             closeSprite, 
             this, 
             menu_selector(PythonPopup::onClose)
         );
-        closeButton->setPosition({220.f, 140.f});
+        closeButton->setPosition({220.f, 140.f}); // Top right within bounds
         menu->addChild(closeButton);
 
         m_mainLayer->addChild(menu);
@@ -52,48 +54,48 @@ protected:
         switch (chapter) {
             case 1:
                 titleLabel->setString("Chapter 1: Variables");
-                contentLabel->setString("Variables store data:\nx = 5\ny = 'Hello'");
+                contentLabel->setString("Variables store data:\nx = 5\ny = 'Hello'\nprint(x, y)");
                 break;
             case 2:
                 titleLabel->setString("Chapter 2: Data Types");
-                contentLabel->setString("Common types:\nint, float, str, list, dict");
+                contentLabel->setString("Common types:\nint: 42\nfloat: 3.14\nstr: 'text'\nlist: [1,2,3]\ndict: {'key': 'value'}");
                 break;
             case 3:
                 titleLabel->setString("Chapter 3: Control Flow");
-                contentLabel->setString("if, else, for, while:\nif x > 5:\n  print(x)");
+                contentLabel->setString("Conditional statements:\nif x > 5:\n    print('Big')\nelse:\n    print('Small')\n\nLoops:\nfor i in range(3):\n    print(i)");
                 break;
             case 4:
                 titleLabel->setString("Chapter 4: Functions");
-                contentLabel->setString("def greet(name):\n  return 'Hi ' + name");
+                contentLabel->setString("Define functions:\ndef greet(name):\n    return 'Hello ' + name\n\nresult = greet('Alice')\nprint(result)");
                 break;
             case 5:
                 titleLabel->setString("Chapter 5: Lists");
-                contentLabel->setString("fruits = ['apple', 'banana']\nprint(fruits[0])");
+                contentLabel->setString("Working with lists:\nfruits = ['apple', 'banana']\nfruits.append('orange')\nprint(fruits[0])\nprint(len(fruits))");
                 break;
             case 6:
                 titleLabel->setString("Chapter 6: Dictionaries");
-                contentLabel->setString("person = {'name': 'Alice', 'age': 30}\nprint(person['name'])");
+                contentLabel->setString("Key-value pairs:\nperson = {\n    'name': 'Alice',\n    'age': 30\n}\nprint(person['name'])\nperson['city'] = 'NYC'");
                 break;
             case 7:
                 titleLabel->setString("Chapter 7: Classes");
-                contentLabel->setString("class Dog:\n  def bark(self):\n    print('Woof!')");
+                contentLabel->setString("Object-oriented programming:\nclass Dog:\n    def __init__(self, name):\n        self.name = name\n    def bark(self):\n        print(f'{self.name} says Woof!')");
                 break;
             case 8:
                 titleLabel->setString("Chapter 8: Modules");
-                contentLabel->setString("import math\nprint(math.sqrt(16))");
+                contentLabel->setString("Import libraries:\nimport math\nimport random\n\nprint(math.sqrt(16))\nprint(random.randint(1, 10))");
                 break;
             case 9:
                 titleLabel->setString("Chapter 9: File I/O");
-                contentLabel->setString("with open('file.txt') as f:\n  data = f.read()");
+                contentLabel->setString("Reading and writing files:\nwith open('file.txt', 'w') as f:\n    f.write('Hello World')\n\nwith open('file.txt', 'r') as f:\n    data = f.read()\n    print(data)");
                 break;
             case 10:
                 titleLabel->setString("Chapter 10: Exceptions");
-                contentLabel->setString("try:\n  x = 1 / 0\nexcept ZeroDivisionError:\n  print('Error')");
+                contentLabel->setString("Handle errors gracefully:\ntry:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print('Cannot divide by zero!')\nfinally:\n    print('Done')");
                 break;
         }
     }
 
- void onClose(CCObject*) override {
+    void onClose(CCObject*) override {
         this->setKeypadEnabled(false);
         this->removeFromParentAndCleanup(true);
     }
