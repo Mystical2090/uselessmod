@@ -61,7 +61,7 @@ protected:
             this, 
             menu_selector(PythonPopup::onClose)
         );
-        closeButton->setPosition({340.f, 220.f});
+        closeButton->setPosition({340.f, 280.f});
         menu->addChild(closeButton);
 
         m_mainLayer->addChild(menu);
