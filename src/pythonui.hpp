@@ -1,4 +1,3 @@
-// if this shit mod gets on geode index i will switch to imgui
 #pragma once
 
 #include <Geode/ui/Popup.hpp>
@@ -7,12 +6,83 @@
 
 using namespace geode::prelude;
 
+class AnswerPopup : public geode::Popup<> {
+protected:
+    std::string answerText;
+
+    bool setup(std::string const& answer) override {
+        answerText = answer;
+        
+        this->setTitle("Solution");
+        
+        auto scrollBg = CCScale9Sprite::create("square02b_001.png");
+        scrollBg->setContentSize({480.f, 280.f});
+        scrollBg->setPosition({240.f, 150.f});
+        scrollBg->setColor({245, 245, 245});
+        scrollBg->setOpacity(220);
+        m_mainLayer->addChild(scrollBg);
+
+        auto scrollLayer = ScrollLayer::create({470.f, 270.f});
+        scrollLayer->setPosition({5.f, 15.f});
+        
+        auto contentLayer = CCLayer::create();
+        
+        auto answerLabel = CCLabelBMFont::create(answerText.c_str(), "chatFont.fnt", 450.f, kCCTextAlignmentLeft);
+        answerLabel->setPosition({235.f, 135.f});
+        answerLabel->setScale(0.6f);
+        answerLabel->setAnchorPoint({0.5f, 0.5f});
+        answerLabel->setColor({0, 128, 0});
+        contentLayer->addChild(answerLabel);
+        
+        auto contentSize = answerLabel->getContentSize();
+        float totalHeight = std::max(270.f, contentSize.height * 0.6f + 50.f);
+        scrollLayer->m_contentLayer->setContentSize({470.f, totalHeight});
+        contentLayer->setContentSize({470.f, totalHeight});
+        
+        answerLabel->setPosition({235.f, totalHeight / 2});
+        
+        scrollLayer->m_contentLayer->addChild(contentLayer);
+        m_mainLayer->addChild(scrollLayer);
+
+        auto closeSprite = CCSprite::createWithSpriteFrameName("GJ_closeBtn_001.png");
+        closeSprite->setScale(0.8f);
+        auto closeButton = CCMenuItemSpriteExtra::create(
+            closeSprite, 
+            this, 
+            menu_selector(AnswerPopup::onClose)
+        );
+        closeButton->setPosition({450.f, 280.f});
+        
+        auto closeMenu = CCMenu::create();
+        closeMenu->setPosition({0, 0});
+        closeMenu->addChild(closeButton);
+        m_mainLayer->addChild(closeMenu);
+        
+        return true;
+    }
+
+    void onClose(CCObject*) override {
+        this->setKeypadEnabled(false);
+        this->removeFromParentAndCleanup(true);
+    }
+
+public:
+    static AnswerPopup* create(std::string const& answer) {
+        auto ret = new AnswerPopup();
+        if (ret->initAnchored(480.f, 320.f, answer)) {
+            ret->autorelease();
+            return ret;
+        }
+        delete ret;
+        return nullptr;
+    }
+};
+
 class PythonPopup : public geode::Popup<> {
 protected:
     CCLabelBMFont* titleLabel;
     CCLabelBMFont* contentLabel;
     CCLabelBMFont* missionLabel;
-    CCLabelBMFont* answerLabel;
     ScrollLayer* scrollLayer;
     CCLayer* contentLayer;
     CCLayer* backgroundLayer;
@@ -22,23 +92,22 @@ protected:
     CCMenuItemSpriteExtra* prevButton;
     CCMenuItemSpriteExtra* nextButton;
     CCMenuItemSpriteExtra* showAnswerButton;
-    CCMenuItemSpriteExtra* tryItButton;
     CCLabelBMFont* m_currentNotification;
     
     int currentPage = 0;
     int currentChapter = 0;
-    bool showingAnswer = false;
+    std::string currentAnswer = "";
     static const int chaptersPerPage = 8;
     static const int totalChapters = 20;
 
     bool setup() override {
-        createAnimatedBackground(); // not done
+        createAnimatedBackground();
         
         this->setTitle("Interactive Python Learning");
         titleLabel = CCLabelBMFont::create("🐍 Interactive Python Tutorial", "chatFont.fnt");
         titleLabel->setPosition({280.f, 330.f});
         titleLabel->setScale(0.8f);
-        titleLabel->setColor({46, 125, 50}); // Python green
+        titleLabel->setColor({46, 125, 50});
         m_mainLayer->addChild(titleLabel);
 
         auto subtitleLabel = CCLabelBMFont::create("Learn by doing - Complete missions and see solutions!", "chatFont.fnt");
@@ -47,7 +116,6 @@ protected:
         subtitleLabel->setColor({100, 100, 100});
         m_mainLayer->addChild(subtitleLabel);
 
-        // Create scroll area with rounded background
         auto scrollBg = CCScale9Sprite::create("square02b_001.png");
         scrollBg->setContentSize({530.f, 190.f});
         scrollBg->setPosition({280.f, 170.f});
@@ -60,29 +128,20 @@ protected:
         
         contentLayer = CCLayer::create();
     
-        contentLabel = CCLabelBMFont::create("🚀 Welcome to Interactive Python Programming!\n\nPython is the world's most popular programming language.\nPerfect for beginners, powerful for experts.\n\n📚 Each chapter includes:\n  • Clear explanations\n  • Hands-on missions\n  • Instant feedback\n\n👆 Select any chapter below to start your journey!", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
-        contentLabel->setPosition({260.f, 150.f});
+        contentLabel = CCLabelBMFont::create("🚀 Welcome to Interactive Python Programming!\n\nPython is the world's most popular programming language.\nPerfect for beginners, powerful for experts.\n\n📚 Each chapter includes:\n  • Clear explanations\n  • Hands-on missions\n  • Instant solutions\n\n👆 Select any chapter below to start your journey!", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
+        contentLabel->setPosition({260.f, 90.f});
         contentLabel->setScale(0.65f);
         contentLabel->setAnchorPoint({0.5f, 0.5f});
         contentLabel->setColor({60, 60, 60});
         contentLayer->addChild(contentLabel);
 
         missionLabel = CCLabelBMFont::create("", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
-        missionLabel->setPosition({260.f, 80.f});
+        missionLabel->setPosition({260.f, 50.f});
         missionLabel->setScale(0.6f);
         missionLabel->setAnchorPoint({0.5f, 0.5f});
-        missionLabel->setColor({0, 77, 153}); // Blue for missions
+        missionLabel->setColor({0, 77, 153});
         missionLabel->setVisible(false);
         contentLayer->addChild(missionLabel);
-
-        // Answer section (initially hidden)
-        answerLabel = CCLabelBMFont::create("", "chatFont.fnt", 500.f, kCCTextAlignmentLeft);
-        answerLabel->setPosition({260.f, 50.f});
-        answerLabel->setScale(0.55f);
-        answerLabel->setAnchorPoint({0.5f, 0.5f});
-        answerLabel->setColor({0, 128, 0}); // Green for answers
-        answerLabel->setVisible(false);
-        contentLayer->addChild(answerLabel);
         
         scrollLayer->m_contentLayer->addChild(contentLayer);
         m_mainLayer->addChild(scrollLayer);
@@ -110,29 +169,9 @@ protected:
             this,
             menu_selector(PythonPopup::onShowAnswer)
         );
-        showAnswerButton->setPosition({150.f, 40.f});
+        showAnswerButton->setPosition({280.f, 40.f});
         showAnswerButton->setVisible(false);
         actionMenu->addChild(showAnswerButton);
-
-        auto tryItBg = CCScale9Sprite::create("GJ_button_04.png");
-        tryItBg->setContentSize({100.f, 35.f});
-        auto tryItIcon = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
-        tryItIcon->setScale(0.5f);
-        tryItIcon->setPosition({15.f, 17.5f});
-        tryItBg->addChild(tryItIcon);
-        auto tryItText = CCLabelBMFont::create("Try It!", "chatFont.fnt");
-        tryItText->setPosition({65.f, 17.5f});
-        tryItText->setScale(0.5f);
-        tryItBg->addChild(tryItText);
-        
-        tryItButton = CCMenuItemSpriteExtra::create(
-            tryItBg,
-            this,
-            menu_selector(PythonPopup::onTryIt)
-        );
-        tryItButton->setPosition({400.f, 40.f});
-        tryItButton->setVisible(false);
-        actionMenu->addChild(tryItButton);
 
         m_mainLayer->addChild(actionMenu);
 
@@ -159,7 +198,6 @@ protected:
         prevButton->setPosition({50.f, 15.f});
         navMenu->addChild(prevButton);
 
-        // Next button
         auto nextBg = CCScale9Sprite::create("GJ_button_02.png");
         nextBg->setContentSize({80.f, 30.f});
         auto nextArrow = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
@@ -214,16 +252,16 @@ protected:
             
             switch(i) {
                 case 0:
-                    bgSprite->setColor({240, 248, 255}); // Light blue
+                    bgSprite->setColor({240, 248, 255});
                     bgSprite->setOpacity(100);
                     break;
                 case 1:
-                    bgSprite->setColor({230, 245, 255}); // Slightly darker
+                    bgSprite->setColor({230, 245, 255});
                     bgSprite->setOpacity(80);
                     bgSprite->setScale(bgSprite->getScale() * 0.9f);
                     break;
                 case 2:
-                    bgSprite->setColor({220, 240, 255}); // Even darker
+                    bgSprite->setColor({220, 240, 255});
                     bgSprite->setOpacity(60);
                     bgSprite->setScale(bgSprite->getScale() * 0.8f);
                     break;
@@ -254,7 +292,7 @@ protected:
             auto icon = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
             icon->setScale(0.4f);
             icon->setPosition({20.f, 20.f});
-            icon->setColor({255, 215, 0}); // Gold color
+            icon->setColor({255, 215, 0});
             buttonBg->addChild(icon);
             
             auto chapterText = CCLabelBMFont::create(("Chapter " + std::to_string(i)).c_str(), "chatFont.fnt");
@@ -338,29 +376,10 @@ protected:
     }
 
     void onShowAnswer(CCObject*) {
-        showingAnswer = !showingAnswer;
-        answerLabel->setVisible(showingAnswer);
-        
-        auto answerBg = static_cast<CCScale9Sprite*>(showAnswerButton->getNormalImage());
-        auto answerText = static_cast<CCLabelBMFont*>(answerBg->getChildren()->objectAtIndex(1));
-        answerText->setString(showingAnswer ? "Hide Answer" : "Show Answer");
-        
-        scrollLayer->scrollToTop();
-    }
-
-    void onTryIt(CCObject*) {
-        auto notification = CCLabelBMFont::create("🎉 Great job! You completed the mission!", "chatFont.fnt");
-        notification->setPosition({280.f, 200.f});
-        notification->setScale(0.6f);
-        notification->setColor({0, 150, 0});
-        m_mainLayer->addChild(notification);
-        
-        auto fadeOut = CCFadeOut::create(2.0f);
-        auto remove = CCCallFunc::create(this, callfunc_selector(PythonPopup::removeNotification));
-        auto sequence = CCSequence::create(fadeOut, remove, nullptr);
-        notification->runAction(sequence);
-        
-        m_currentNotification = notification;
+        if (!currentAnswer.empty()) {
+            auto answerPopup = AnswerPopup::create(currentAnswer);
+            answerPopup->show();
+        }
     }
 
     void removeNotification() {
@@ -372,36 +391,27 @@ protected:
 
     void onChapter(CCObject* sender) {
         currentChapter = static_cast<CCNode*>(sender)->getTag();
-        showingAnswer = false;
         std::string title, content, mission, answer;
         
         getChapterContent(currentChapter, title, content, mission, answer);
+        currentAnswer = answer;
         
         titleLabel->setString(title.c_str());
         contentLabel->setString(content.c_str());
         missionLabel->setString(mission.c_str());
-        answerLabel->setString(answer.c_str());
         
         missionLabel->setVisible(true);
         showAnswerButton->setVisible(true);
-        tryItButton->setVisible(true);
-        answerLabel->setVisible(false);
-        
-        auto answerBg = static_cast<CCScale9Sprite*>(showAnswerButton->getNormalImage());
-        auto answerText = static_cast<CCLabelBMFont*>(answerBg->getChildren()->objectAtIndex(1));
-        answerText->setString("Show Answer");
 
         auto contentSize = contentLabel->getContentSize();
         auto missionSize = missionLabel->getContentSize();
-        auto answerSize = answerLabel->getContentSize();
         
-        float totalHeight = contentSize.height + missionSize.height + answerSize.height + 150.f;
+        float totalHeight = contentSize.height + missionSize.height + 100.f;
         scrollLayer->m_contentLayer->setContentSize({520.f, totalHeight});
         contentLayer->setContentSize({520.f, totalHeight});
         
         contentLabel->setPosition({260.f, totalHeight - contentSize.height / 2 - 25.f});
-        missionLabel->setPosition({260.f, totalHeight - contentSize.height - missionSize.height / 2 - 75.f});
-        answerLabel->setPosition({260.f, totalHeight - contentSize.height - missionSize.height - answerSize.height / 2 - 125.f});
+        missionLabel->setPosition({260.f, totalHeight - contentSize.height - missionSize.height / 2 - 50.f});
         
         scrollLayer->scrollToTop();
     }
@@ -427,130 +437,114 @@ protected:
                 answer = "✅ SOLUTION:\n\n# Get input\nnum1 = float(input('Enter first number: '))\nnum2 = float(input('Enter second number: '))\n\n# Calculate\nsum_result = num1 + num2\ndiff_result = num1 - num2\nproduct_result = num1 * num2\ndiv_result = num1 / num2\n\n# Display results\nprint('Results:')\nprint(f'  {num1} + {num2} = {sum_result}')\nprint(f'  {num1} - {num2} = {diff_result}')\nprint(f'  {num1} × {num2} = {product_result}')\nprint(f'  {num1} ÷ {num2} = {div_result:.2f}')";
                 break;
             case 4:
-            title = "🔢 Chapter 4: Math & Logic Basics";
-            content = "Explore Python's math operators and logical expressions.\n\nOperators:\n• +, -, *, /\n• // (floor division), % (modulus)\n\nLogical Operators:\n• and, or, not\n\nExample:\nresult = (5 > 3) and (2 < 4)  # True";
-            mission = "🎯 MISSION: Calculate & Compare\n\nWrite a program that calculates the remainder when dividing two numbers.\nThen check if the remainder is zero and print the result.";
-            answer = "✅ SOLUTION:\n\nnum1 = 10\nnum2 = 3\nremainder = num1 % num2\nprint(f'Remainder: {remainder}')\nprint(f'Is divisible? {remainder == 0}')";
-            break;
-
+                title = "🔢 Chapter 4: Math & Logic Basics";
+                content = "Explore Python's math operators and logical expressions.\n\nOperators:\n• +, -, *, /\n• // (floor division), % (modulus)\n\nLogical Operators:\n• and, or, not\n\nExample:\nresult = (5 > 3) and (2 < 4)  # True";
+                mission = "🎯 MISSION: Calculate & Compare\n\nWrite a program that calculates the remainder when dividing two numbers.\nThen check if the remainder is zero and print the result.";
+                answer = "✅ SOLUTION:\n\nnum1 = 10\nnum2 = 3\nremainder = num1 % num2\nprint(f'Remainder: {remainder}')\nprint(f'Is divisible? {remainder == 0}')";
+                break;
             case 5:
-            title = "⚖️ Chapter 5: Conditional Statements";
-            content = "Make decisions in your code using if, elif, and else.\n\nExample:\nif score >= 90:\n  print('Excellent')\nelif score >= 75:\n  print('Good')\nelse:\n  print('Keep trying')";
-            mission = "🎯 MISSION: Grade Checker\n\nWrite a program that asks for a grade and prints a message based on the value.";
-            answer = "✅ SOLUTION:\n\ngrade = int(input('Enter your grade: '))\nif grade >= 90:\n  print('Excellent')\nelif grade >= 75:\n  print('Good')\nelse:\n  print('Keep trying')";
-            break;
-
+                title = "⚖️ Chapter 5: Conditional Statements";
+                content = "Make decisions in your code using if, elif, and else.\n\nExample:\nif score >= 90:\n  print('Excellent')\nelif score >= 75:\n  print('Good')\nelse:\n  print('Keep trying')";
+                mission = "🎯 MISSION: Grade Checker\n\nWrite a program that asks for a grade and prints a message based on the value.";
+                answer = "✅ SOLUTION:\n\ngrade = int(input('Enter your grade: '))\nif grade >= 90:\n  print('Excellent')\nelif grade >= 75:\n  print('Good')\nelse:\n  print('Keep trying')";
+                break;
             case 6:
-            title = "🔄 Chapter 6: Loops - Repetition";
-            content = "Learn how to repeat tasks with for and while loops.\n\nExample for loop:\nfor i in range(5):\n  print(i)";
-            mission = "🎯 MISSION: Loop Practice\n\nWrite a program that prints all even numbers from 2 to 20.";
-            answer = "✅ SOLUTION:\n\nfor num in range(2, 21, 2):\n  print(num)";
-            break;
-
+                title = "🔄 Chapter 6: Loops - Repetition";
+                content = "Learn how to repeat tasks with for and while loops.\n\nExample for loop:\nfor i in range(5):\n  print(i)";
+                mission = "🎯 MISSION: Loop Practice\n\nWrite a program that prints all even numbers from 2 to 20.";
+                answer = "✅ SOLUTION:\n\nfor num in range(2, 21, 2):\n  print(num)";
+                break;
             case 7:
-            title = "📦 Chapter 7: Lists & Collections";
-            content = "Manage multiple items using lists.\n\nExample:\nnumbers = [1, 2, 3, 4]\nprint(numbers[0])  # 1";
-            mission = "🎯 MISSION: List Manipulation\n\nCreate a list of your favorite fruits and print each one.";
-            answer = "✅ SOLUTION:\n\nfruits = ['apple', 'banana', 'cherry']\nfor fruit in fruits:\n  print(fruit)";
-            break;
-
+                title = "📦 Chapter 7: Lists & Collections";
+                content = "Manage multiple items using lists.\n\nExample:\nnumbers = [1, 2, 3, 4]\nprint(numbers[0])  # 1";
+                mission = "🎯 MISSION: List Manipulation\n\nCreate a list of your favorite fruits and print each one.";
+                answer = "✅ SOLUTION:\n\nfruits = ['apple', 'banana', 'cherry']\nfor fruit in fruits:\n  print(fruit)";
+                break;
             case 8:
-            title = "🔧 Chapter 8: Functions & Reusability";
-            content = "Define reusable blocks of code with functions.\n\nExample:\ndef greet(name):\n  print(f'Hello, {name}!')";
-            mission = "🎯 MISSION: Function Builder\n\nWrite a function that takes a number and returns its square.";
-            answer = "✅ SOLUTION:\n\ndef square(num):\n  return num * num\n\nprint(square(5))";
-            break;
-
+                title = "🗝️ Chapter 8: Dictionaries & Key-Value Pairs";
+                content = "Store data as key-value pairs.\n\nExample:\nperson = {'name': 'Alice', 'age': 30}\nprint(person['name'])";
+                mission = "🎯 MISSION: Dictionary Lookup\n\nCreate a dictionary of three countries and their capitals and print each.";
+                answer = "✅ SOLUTION:\n\ncountries = {'USA': 'Washington', 'France': 'Paris', 'Japan': 'Tokyo'}\nfor country, capital in countries.items():\n  print(f'{country}: {capital}')";
+                break;
             case 9:
-            title = "📂 Chapter 9: Dictionaries & Key-Value Pairs";
-            content = "Store data as key-value pairs.\n\nExample:\nperson = {'name': 'Alice', 'age': 30}\nprint(person['name'])";
-            mission = "🎯 MISSION: Dictionary Lookup\n\nCreate a dictionary of three countries and their capitals and print each.";
-            answer = "✅ SOLUTION:\n\ncountries = {'USA': 'Washington', 'France': 'Paris', 'Japan': 'Tokyo'}\nfor country, capital in countries.items():\n  print(f'{country}: {capital}')";
-            break;
-
+                title = "🔧 Chapter 9: Functions & Reusability";
+                content = "Define reusable blocks of code with functions.\n\nExample:\ndef greet(name):\n  print(f'Hello, {name}!')";
+                mission = "🎯 MISSION: Function Builder\n\nWrite a function that takes a number and returns its square.";
+                answer = "✅ SOLUTION:\n\ndef square(num):\n  return num * num\n\nprint(square(5))";
+                break;
             case 10:
-            title = "🧩 Chapter 10: Working with Strings";
-            content = "Manipulate text data using strings.\n\nExample:\nname = 'ChatGPT'\nprint(name.upper())";
-            mission = "🎯 MISSION: String Formatter\n\nWrite a program that takes a user input string and prints it reversed.";
-            answer = "✅ SOLUTION:\n\ntext = input('Enter text: ')\nprint(text[::-1])";
-            break;
-
+                title = "🧩 Chapter 10: Working with Strings";
+                content = "Manipulate text data using strings.\n\nExample:\nname = 'ChatGPT'\nprint(name.upper())";
+                mission = "🎯 MISSION: String Formatter\n\nWrite a program that takes a user input string and prints it reversed.";
+                answer = "✅ SOLUTION:\n\ntext = input('Enter text: ')\nprint(text[::-1])";
+                break;
             case 11:
-            title = "🔍 Chapter 11: File Handling Basics";
-            content = "Read and write files to save data.\n\nExample:\nwith open('file.txt', 'w') as f:\n  f.write('Hello')";
-            mission = "🎯 MISSION: File Writer\n\nWrite a program that saves a user’s input to a file.";
-            answer = "✅ SOLUTION:\n\ntext = input('Enter text to save: ')\nwith open('output.txt', 'w') as f:\n  f.write(text)";
-            break;
-
+                title = "🔍 Chapter 11: File Handling Basics";
+                content = "Read and write files to save data.\n\nExample:\nwith open('file.txt', 'w') as f:\n  f.write('Hello')";
+                mission = "🎯 MISSION: File Writer\n\nWrite a program that saves a user's input to a file.";
+                answer = "✅ SOLUTION:\n\ntext = input('Enter text to save: ')\nwith open('output.txt', 'w') as f:\n  f.write(text)";
+                break;
             case 12:
-            title = "⚙️ Chapter 12: Error Handling & Exceptions";
-            content = "Make your program robust with try-except blocks.\n\nExample:\ntry:\n  x = 1 / 0\nexcept ZeroDivisionError:\n  print('Cannot divide by zero')";
-            mission = "🎯 MISSION: Safe Division\n\nWrite a program that divides two numbers but handles division by zero gracefully.";
-            answer = "✅ SOLUTION:\n\ntry:\n  num1 = int(input('Enter numerator: '))\n  num2 = int(input('Enter denominator: '))\n  result = num1 / num2\n  print(f'Result: {result}')\nexcept ZeroDivisionError:\n  print('Error: Cannot divide by zero')";
-            break;
-
+                title = "⚙️ Chapter 12: Error Handling & Exceptions";
+                content = "Make your program robust with try-except blocks.\n\nExample:\ntry:\n  x = 1 / 0\nexcept ZeroDivisionError:\n  print('Cannot divide by zero')";
+                mission = "🎯 MISSION: Safe Division\n\nWrite a program that divides two numbers but handles division by zero gracefully.";
+                answer = "✅ SOLUTION:\n\ntry:\n  num1 = int(input('Enter numerator: '))\n  num2 = int(input('Enter denominator: '))\n  result = num1 / num2\n  print(f'Result: {result}')\nexcept ZeroDivisionError:\n  print('Error: Cannot divide by zero')";
+                break;
             case 13:
-            title = "📐 Chapter 13: Modules & Importing";
-            content = "Reuse code by importing modules.\n\nExample:\nimport math\nprint(math.sqrt(16))";
-            mission = "🎯 MISSION: Module Use\n\nWrite a program that imports random and prints a random number between 1 and 10.";
-            answer = "✅ SOLUTION:\n\nimport random\nprint(random.randint(1, 10))";
-            break;
-
+                title = "🏗️ Chapter 13: Object-Oriented Programming";
+                content = "Structure your code with classes and objects.\n\nExample:\nclass Dog:\n  def __init__(self, name):\n    self.name = name";
+                mission = "🎯 MISSION: Class Creation\n\nCreate a class `Car` with attributes and a method to display details.";
+                answer = "✅ SOLUTION:\n\nclass Car:\n  def __init__(self, make, model):\n    self.make = make\n    self.model = model\n  def show(self):\n    print(f'{self.make} {self.model}')\n\ncar = Car('Toyota', 'Corolla')\ncar.show()";
+                break;
             case 14:
-            title = "💻 Chapter 14: Object-Oriented Programming";
-            content = "Structure your code with classes and objects.\n\nExample:\nclass Dog:\n  def __init__(self, name):\n    self.name = name";
-            mission = "🎯 MISSION: Class Creation\n\nCreate a class `Car` with attributes and a method to display details.";
-            answer = "✅ SOLUTION:\n\nclass Car:\n  def __init__(self, make, model):\n    self.make = make\n    self.model = model\n  def show(self):\n    print(f'{self.make} {self.model}')\n\ncar = Car('Toyota', 'Corolla')\ncar.show()";
-            break;
-
+                title = "📚 Chapter 14: Import Libraries";
+                content = "Extend Python's functionality with modules and packages.\n\nBuilt-in Modules:\nimport math\nprint(math.sqrt(16))  # 4.0\nprint(math.pi)        # 3.14159...\n\nimport random\nprint(random.randint(1, 10))  # Random number 1-10\n\nimport datetime\nnow = datetime.datetime.now()\nprint(now.strftime('%Y-%m-%d %H:%M'))\n\nInstalling External Packages:\npip install requests\npip install numpy\n\nImport Variations:\nfrom math import sqrt, pi\nimport math as m\nfrom datetime import datetime as dt";
+                mission = "🎯 MISSION: Random Generator!\n\nCreate a program that:\n1. Generates 5 random numbers between 1-100\n2. Calculates the square root of each\n3. Shows the current date and time\n\nUse the math, random, and datetime modules!";
+                answer = "✅ SOLUTION:\n\nimport math\nimport random\nimport datetime\n\nprint('Random Number Generator')\nprint('=' * 25)\n\nfor i in range(5):\n    num = random.randint(1, 100)\n    sqrt_num = math.sqrt(num)\n    print(f'Number: {num}, Square root: {sqrt_num:.2f}')\n\nnow = datetime.datetime.now()\nprint(f'\\nGenerated on: {now.strftime(\"%Y-%m-%d at %H:%M:%S\")}')";
+                break;
             case 15:
-            title = "🔄 Chapter 15: Recursion & Self-Calling Functions";
-            content = "Functions that call themselves to solve problems.\n\nExample:\ndef factorial(n):\n  if n == 0:\n    return 1\n  else:\n    return n * factorial(n-1)";
-            mission = "🎯 MISSION: Recursive Factorial\n\nWrite a recursive function to compute factorial.";
-            answer = "✅ SOLUTION:\n\ndef factorial(n):\n  if n == 0:\n    return 1\n  return n * factorial(n-1)\n\nprint(factorial(5))";
-            break;
-
+                title = "⚡ Chapter 15: List Comprehensions";
+                content = "Create lists efficiently with elegant one-liners! ⚡\n\nBasic Syntax:\n[expression for item in iterable]\n\nExamples:\n# Traditional way\nsquares = []\nfor x in range(10):\n    squares.append(x**2)\n\n# List comprehension way\nsquares = [x**2 for x in range(10)]\n\n# With conditions\neven_squares = [x**2 for x in range(10) if x % 2 == 0]\n\n# String manipulation\nwords = ['hello', 'world', 'python']\nupper_words = [word.upper() for word in words]\n\n# Nested lists\nmatrix = [[i*j for j in range(3)] for i in range(3)]";
+                mission = "🎯 MISSION: Data Transformer!\n\nGiven this list of temperatures in Celsius:\ncelsius = [0, 10, 20, 30, 40]\n\nUse list comprehensions to:\n1. Convert all to Fahrenheit (F = C * 9/5 + 32)\n2. Filter only temperatures above 50°F\n3. Create a list of temperature descriptions:\n   - Below 32°F: 'Freezing'\n   - 32-80°F: 'Moderate'\n   - Above 80°F: 'Hot'";
+                answer = "✅ SOLUTION:\n\ncelsius = [0, 10, 20, 30, 40]\n\n# 1. Convert to Fahrenheit\nfahrenheit = [c * 9/5 + 32 for c in celsius]\nprint(f'Fahrenheit: {fahrenheit}')\n\n# 2. Filter above 50°F\nhot_temps = [f for f in fahrenheit if f > 50]\nprint(f'Above 50°F: {hot_temps}')\n\n# 3. Temperature descriptions\ndef get_description(f):\n    if f < 32:\n        return 'Freezing'\n    elif f <= 80:\n        return 'Moderate'\n    else:\n        return 'Hot'\n\ndescriptions = [get_description(f) for f in fahrenheit]\nprint(f'Descriptions: {descriptions}')";
+                break;
             case 16:
-            title = "📊 Chapter 16: Data Analysis Basics";
-            content = "Use Python to analyze simple datasets.\n\nExample:\ndata = [5, 10, 15]\navg = sum(data) / len(data)\nprint(avg)";
-            mission = "🎯 MISSION: Calculate Average\n\nWrite a program to input numbers and calculate their average.";
-            answer = "✅ SOLUTION:\n\nnumbers = list(map(int, input('Enter numbers separated by space: ').split()))\navg = sum(numbers) / len(numbers)\nprint(f'Average: {avg}')";
-            break;
-
+                title = "🚀 Chapter 16: Lambda Functions";
+                content = "Create quick, anonymous functions with lambda! 🚀\n\nSyntax:\nlambda arguments: expression\n\nBasic Examples:\n# Regular function\ndef square(x):\n    return x**2\n\n# Lambda equivalent\nsquare = lambda x: x**2\nprint(square(5))  # 25\n\nUseful with built-in functions:\nnumbers = [1, 2, 3, 4, 5]\nsquared = list(map(lambda x: x**2, numbers))\neven = list(filter(lambda x: x % 2 == 0, numbers))\n\n# Sorting with lambda\nstudents = [('Alice', 85), ('Bob', 90), ('Charlie', 78)]\nstudents.sort(key=lambda student: student[1])  # Sort by grade\n\n# Multiple arguments\nadd = lambda x, y: x + y\nprint(add(3, 5))  # 8";
+                mission = "🎯 MISSION: Lambda Toolkit!\n\nCreate a program that uses lambda functions to:\n1. Calculate the area of circles (π * r²) for radii [1, 2, 3, 4, 5]\n2. Filter names longer than 4 characters from ['Ana', 'Bob', 'Charlie', 'Diana', 'Ed']\n3. Sort this list of products by price:\n   products = [('Laptop', 999), ('Mouse', 25), ('Keyboard', 75)]\n\nUse map(), filter(), and sort() with lambdas!";
+                answer = "✅ SOLUTION:\n\nimport math\n\n# 1. Circle areas\nradii = [1, 2, 3, 4, 5]\nareas = list(map(lambda r: math.pi * r**2, radii))\nprint('Circle areas:')\nfor r, area in zip(radii, areas):\n    print(f'  Radius {r}: {area:.2f}')\n\n# 2. Filter long names\nnames = ['Ana', 'Bob', 'Charlie', 'Diana', 'Ed']\nlong_names = list(filter(lambda name: len(name) > 4, names))\nprint(f'\\nNames longer than 4 chars: {long_names}')\n\n# 3. Sort products by price\nproducts = [('Laptop', 999), ('Mouse', 25), ('Keyboard', 75)]\nproducts.sort(key=lambda product: product[1])\nprint('\\nProducts sorted by price:')\nfor name, price in products:\n    print(f'  {name}: ${price}')";
+                break;
             case 17:
-            title = "🌐 Chapter 17: Web Scraping Intro";
-            content = "Extract data from websites using Python libraries.\n\nExample:\nimport requests\nresponse = requests.get('http://example.com')";
-            mission = "🎯 MISSION: Fetch Title\n\nWrite a program to fetch and print the title of a webpage (using BeautifulSoup).";
-            answer = "✅ SOLUTION:\n\nimport requests\nfrom bs4 import BeautifulSoup\nurl = 'http://example.com'\nresponse = requests.get(url)\nsoup = BeautifulSoup(response.text, 'html.parser')\nprint(soup.title.string)";
-            break;
-
+                title = "🎨 Chapter 17: Decorators";
+                content = "Enhance functions with decorators - Python's superpowers! 🎨\n\nBasic Decorator:\ndef my_decorator(func):\n    def wrapper():\n        print('Before function')\n        func()\n        print('After function')\n    return wrapper\n\n@my_decorator\ndef say_hello():\n    print('Hello!')\n\nTiming Decorator:\nimport time\ndef timer(func):\n    def wrapper(*args, **kwargs):\n        start = time.time()\n        result = func(*args, **kwargs)\n        end = time.time()\n        print(f'{func.__name__} took {end-start:.4f} seconds')\n        return result\n    return wrapper\n\n@timer\ndef slow_function():\n    time.sleep(1)";
+                mission = "🎯 MISSION: Function Enhancer!\n\nCreate decorators that:\n1. Count how many times a function is called\n2. Validate that function arguments are positive numbers\n3. Cache function results to avoid recalculation\n\nTest with a factorial function and see the magic!";
+                answer = "✅ SOLUTION:\n\nfrom functools import wraps\n\n# 1. Call counter decorator\ndef call_counter(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        wrapper.calls += 1\n        print(f'{func.__name__} called {wrapper.calls} times')\n        return func(*args, **kwargs)\n    wrapper.calls = 0\n    return wrapper\n\n# 2. Validation decorator\ndef validate_positive(func):\n    @wraps(func)\n    def wrapper(*args, **kwargs):\n        for arg in args:\n            if isinstance(arg, (int, float)) and arg < 0:\n                raise ValueError('Arguments must be positive')\n        return func(*args, **kwargs)\n    return wrapper\n\n# 3. Cache decorator\ndef cache(func):\n    @wraps(func)\n    def wrapper(*args):\n        if args not in wrapper.cache_dict:\n            wrapper.cache_dict[args] = func(*args)\n            print(f'Calculated {func.__name__}{args}')\n        else:\n            print(f'Retrieved from cache {func.__name__}{args}')\n        return wrapper.cache_dict[args]\n    wrapper.cache_dict = {}\n    return wrapper\n\n# Test function with all decorators\n@call_counter\n@validate_positive\n@cache\ndef factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\n# Test\nprint(factorial(5))\nprint(factorial(5))  # From cache\nprint(factorial(6))";
+                break;
             case 18:
-            title = "🔐 Chapter 18: Introduction to Encryption";
-            content = "Learn simple data encryption concepts.\n\nExample:\ntext = 'hello'\nencrypted = ''.join(chr(ord(c) + 1) for c in text)";
-            mission = "🎯 MISSION: Caesar Cipher\n\nWrite a program to encrypt a message by shifting letters by 3.";
-            answer = "✅ SOLUTION:\n\nmessage = input('Enter message: ')\nencrypted = ''.join(chr((ord(c) - 65 + 3) % 26 + 65) if c.isupper() else c for c in message)\nprint(encrypted)";
-            break;
-
+                title = "🌐 Chapter 18: Web Requests & APIs";
+                content = "Connect to the internet and fetch data from APIs! 🌐\n\nInstall requests:\npip install requests\n\nBasic GET Request:\nimport requests\n\nresponse = requests.get('https://api.github.com/users/octocat')\nif response.status_code == 200:\n    data = response.json()\n    print(data['name'])\n\nPOST Request:\ndata = {'key': 'value'}\nresponse = requests.post('https://httpbin.org/post', json=data)\n\nHeaders and Parameters:\nheaders = {'User-Agent': 'MyApp/1.0'}\nparams = {'q': 'python', 'sort': 'stars'}\nresponse = requests.get('https://api.github.com/search/repositories', \n                       headers=headers, params=params)\n\nError Handling:\ntry:\n    response = requests.get('https://api.example.com/data', timeout=5)\n    response.raise_for_status()  # Raises exception for bad status\nexcept requests.exceptions.RequestException as e:\n    print(f'Error: {e}')";
+                mission = "🎯 MISSION: Weather App!\n\nCreate a weather app that:\n1. Fetches weather data from a free API (like OpenWeatherMap)\n2. Asks user for a city name\n3. Displays temperature, description, and humidity\n4. Handles errors gracefully (invalid city, no internet)\n\nNote: You'll need to sign up for a free API key!\nAlternatively, use a mock API like JSONPlaceholder for practice.";
+                answer = "✅ SOLUTION:\n\nimport requests\nimport json\n\ndef get_weather(city, api_key):\n    \"\"\"Fetch weather data for a city\"\"\"\n    base_url = 'http://api.openweathermap.org/data/2.5/weather'\n    params = {\n        'q': city,\n        'appid': api_key,\n        'units': 'metric'  # Celsius\n    }\n    \n    try:\n        response = requests.get(base_url, params=params, timeout=5)\n        response.raise_for_status()\n        return response.json()\n    except requests.exceptions.RequestException as e:\n        print(f'Error fetching weather: {e}')\n        return None\n\ndef display_weather(weather_data):\n    \"\"\"Display weather information\"\"\"\n    if weather_data:\n        city = weather_data['name']\n        temp = weather_data['main']['temp']\n        description = weather_data['weather'][0]['description']\n        humidity = weather_data['main']['humidity']\n        \n        print(f'\\n🌤️  Weather in {city}:')\n        print(f'   Temperature: {temp}°C')\n        print(f'   Description: {description.title()}')\n        print(f'   Humidity: {humidity}%')\n    else:\n        print('Unable to fetch weather data')\n\n# Main program\napi_key = 'YOUR_API_KEY_HERE'  # Get from openweathermap.org\ncity = input('Enter city name: ')\n\nweather = get_weather(city, api_key)\ndisplay_weather(weather)\n\n# Alternative using JSONPlaceholder for demo:\ndef demo_api():\n    response = requests.get('https://jsonplaceholder.typicode.com/posts/1')\n    if response.status_code == 200:\n        data = response.json()\n        print(f'Post Title: {data[\"title\"]}')\n        print(f'Post Body: {data[\"body\"][:50]}...')\n\ndemo_api()";
+                break;
             case 19:
-            title = "⚡ Chapter 19: Multithreading Basics";
-            content = "Run multiple threads for concurrency.\n\nExample:\nimport threading\ndef task():\n  print('Thread running')";
-            mission = "🎯 MISSION: Thread Runner\n\nWrite a program that starts two threads running a simple function.";
-            answer = "✅ SOLUTION:\n\nimport threading\n\ndef print_hello():\n  print('Hello from thread')\n\nthread1 = threading.Thread(target=print_hello)\nthread2 = threading.Thread(target=print_hello)\nthread1.start()\nthread2.start()";
-            break;
-
+                title = "📦 Chapter 19: Package Management & Virtual Environments";
+                content = "Manage Python projects like a pro! 📦\n\nVirtual Environments:\n# Create virtual environment\npython -m venv myproject_env\n\n# Activate (Windows)\nmyproject_env\\Scripts\\activate\n\n# Activate (Mac/Linux)\nsource myproject_env/bin/activate\n\n# Deactivate\ndeactivate\n\nPackage Management:\npip install package_name\npip install package_name==1.2.3  # Specific version\npip install -r requirements.txt   # From file\npip freeze > requirements.txt     # Save current packages\npip list                          # Show installed packages\npip uninstall package_name        # Remove package\n\nProject Structure:\nmyproject/\n├── venv/\n├── src/\n│   └── main.py\n├── tests/\n├── requirements.txt\n├── README.md\n└── .gitignore\n\nBest Practices:\n• One virtual environment per project\n• Keep requirements.txt updated\n• Use descriptive project names";
+                mission = "🎯 MISSION: Project Setup Master!\n\nCreate a complete Python project setup:\n1. Create a virtual environment named 'calculator_env'\n2. Install requests and matplotlib packages\n3. Create a requirements.txt file\n4. Write a simple script that uses both packages\n5. Create a basic project structure\n\nDocument the setup process in a README.md file!";
+                answer = "✅ SOLUTION:\n\n# Terminal commands (run these in order):\n\n# 1. Create virtual environment\npython -m venv calculator_env\n\n# 2. Activate environment\n# Windows: calculator_env\\Scripts\\activate\n# Mac/Linux: source calculator_env/bin/activate\n\n# 3. Install packages\npip install requests matplotlib\n\n# 4. Save requirements\npip freeze > requirements.txt\n\n# Project files to create:\n\n# main.py\nimport requests\nimport matplotlib.pyplot as plt\nimport json\n\ndef fetch_data():\n    \"\"\"Fetch sample data from API\"\"\"\n    response = requests.get('https://jsonplaceholder.typicode.com/posts')\n    return response.json()[:5]  # First 5 posts\n\ndef create_chart(data):\n    \"\"\"Create a chart of post lengths\"\"\"\n    titles = [post['title'][:20] + '...' for post in data]\n    lengths = [len(post['body']) for post in data]\n    \n    plt.figure(figsize=(10, 6))\n    plt.bar(range(len(titles)), lengths)\n    plt.xlabel('Posts')\n    plt.ylabel('Body Length')\n    plt.title('Post Body Lengths')\n    plt.xticks(range(len(titles)), titles, rotation=45)\n    plt.tight_layout()\n    plt.show()\n\nif __name__ == '__main__':\n    data = fetch_data()\n    create_chart(data)\n\n# README.md\n# Calculator Project\n\n## Setup\n1. Create virtual environment: `python -m venv calculator_env`\n2. Activate: `source calculator_env/bin/activate` (Mac/Linux) or `calculator_env\\Scripts\\activate` (Windows)\n3. Install dependencies: `pip install -r requirements.txt`\n4. Run: `python main.py`\n\n## Dependencies\n- requests: For API calls\n- matplotlib: For data visualization\n\n# requirements.txt content:\n# certifi==2023.5.7\n# charset-normalizer==3.1.0\n# contourpy==1.0.7\n# cycler==0.11.0\n# fonttools==4.39.4\n# idna==3.4\n# kiwisolver==1.4.4\n# matplotlib==3.7.1\n# numpy==1.24.3\n# packaging==23.1\n# Pillow==9.5.0\n# pyparsing==3.0.9\n# python-dateutil==2.8.2\n# requests==2.31.0\n# six==1.16.0\n# urllib3==2.0.2";
+                break;
             case 20:
-            title = "🧠 Chapter 20: Introduction to AI & Machine Learning";
-            content = "Basics of AI with Python libraries.\n\nExample:\nfrom sklearn.linear_model import LinearRegression";
-            mission = "🎯 MISSION: Simple Prediction\n\nWrite a program to train a simple linear regression model and predict a value.";
-            answer = "✅ SOLUTION:\n\nfrom sklearn.linear_model import LinearRegression\nimport numpy as np\n\nX = np.array([[1], [2], [3], [4]])\ny = np.array([2, 4, 6, 8])\nmodel = LinearRegression().fit(X, y)\nprint(model.predict([[5]]))";
-            break;
-
+                title = "🏆 Chapter 20: Best Practices & Code Quality";
+                content = "Write clean, maintainable Python code! 🏆\n\nPEP 8 Style Guide:\n# Good\ndef calculate_area(radius):\n    return 3.14159 * radius ** 2\n\n# Bad\ndef calculateArea(r):\n    return 3.14159*r**2\n\nDocstrings:\ndef greet(name: str) -> str:\n    \"\"\"\n    Greet a person by name.\n    \n    Args:\n        name: The person's name\n        \n    Returns:\n        A greeting message\n    \"\"\"\n    return f'Hello, {name}!'\n\nType Hints:\nfrom typing import List, Dict, Optional\n\ndef process_data(items: List[int]) -> Dict[str, float]:\n    return {'average': sum(items) / len(items)}\n\nError Handling:\ndef safe_divide(a: float, b: float) -> Optional[float]:\n    try:\n        return a / b\n    except ZeroDivisionError:\n        print('Cannot divide by zero')\n        return None\n\nTesting:\nimport unittest\n\nclass TestMath(unittest.TestCase):\n    def test_addition(self):\n        self.assertEqual(2 + 2, 4)\n\nif __name__ == '__main__':\n    unittest.main()";
+                mission = "🎯 MISSION: Code Quality Champion!\n\nRefactor this messy code to follow best practices:\n\ndef calc(x,y,op):\n  if op=='+':\n    return x+y\n  elif op=='-':\n    return x-y\n  elif op=='*':\n    return x*y\n  elif op=='/':\n    return x/y\n\nMake it:\n• PEP 8 compliant\n• Include type hints\n• Add docstrings\n• Handle errors\n• Add unit tests\n• Use enums for operations";
+                answer = "✅ SOLUTION:\n\nfrom enum import Enum\nfrom typing import Union\nimport unittest\n\n\nclass Operation(Enum):\n    \"\"\"Mathematical operations.\"\"\"\n    ADD = '+'\n    SUBTRACT = '-'\n    MULTIPLY = '*'\n    DIVIDE = '/'\n\n\ndef calculate(x: Union[int, float], y: Union[int, float], \n             operation: Operation) -> Union[int, float]:\n    \"\"\"\n    Perform a mathematical operation on two numbers.\n    \n    Args:\n        x: First number\n        y: Second number\n        operation: Mathematical operation to perform\n        \n    Returns:\n        Result of the mathematical operation\n        \n    Raises:\n        ZeroDivisionError: When dividing by zero\n        ValueError: For unsupported operations\n    \"\"\"\n    if operation == Operation.ADD:\n        return x + y\n    elif operation == Operation.SUBTRACT:\n        return x - y\n    elif operation == Operation.MULTIPLY:\n        return x * y\n    elif operation == Operation.DIVIDE:\n        if y == 0:\n            raise ZeroDivisionError('Cannot divide by zero')\n        return x / y\n    else:\n        raise ValueError(f'Unsupported operation: {operation}')\n\n\nclass TestCalculator(unittest.TestCase):\n    \"\"\"Test cases for the calculator function.\"\"\"\n    \n    def test_addition(self):\n        \"\"\"Test addition operation.\"\"\"\n        result = calculate(2, 3, Operation.ADD)\n        self.assertEqual(result, 5)\n    \n    def test_subtraction(self):\n        \"\"\"Test subtraction operation.\"\"\"\n        result = calculate(5, 3, Operation.SUBTRACT)\n        self.assertEqual(result, 2)\n    \n    def test_multiplication(self):\n        \"\"\"Test multiplication operation.\"\"\"\n        result = calculate(4, 3, Operation.MULTIPLY)\n        self.assertEqual(result, 12)\n    \n    def test_division(self):\n        \"\"\"Test division operation.\"\"\"\n        result = calculate(6, 2, Operation.DIVIDE)\n        self.assertEqual(result, 3)\n    \n    def test_division_by_zero(self):\n        \"\"\"Test division by zero raises exception.\"\"\"\n        with self.assertRaises(ZeroDivisionError):\n            calculate(5, 0, Operation.DIVIDE)\n    \n    def test_float_numbers(self):\n        \"\"\"Test with floating point numbers.\"\"\"\n        result = calculate(2.5, 1.5, Operation.ADD)\n        self.assertAlmostEqual(result, 4.0)\n\n\ndef main():\n    \"\"\"Example usage of the calculator.\"\"\"\n    try:\n        result = calculate(10, 2, Operation.DIVIDE)\n        print(f'10 ÷ 2 = {result}')\n        \n        result = calculate(5, 0, Operation.DIVIDE)\n        print(f'This should not print')\n        \n    except ZeroDivisionError as e:\n        print(f'Error: {e}')\n\n\nif __name__ == '__main__':\n    # Run tests\n    unittest.main(argv=[''], exit=False, verbosity=2)\n    \n    # Run example\n    print('\\nExample usage:')\n    main()";
+                break;
             default:
-            title = "Chapter Not Found";
-            content = "Content for this chapter is not available.";
-            mission = "";
-            answer = "";
-            break;
+                title = "🐍 Python Tutorial";
+                content = "Select a chapter to start learning!";
+                mission = "";
+                answer = "";
+                break;
+        }
     }
 
     void onClose(CCObject*) override {
