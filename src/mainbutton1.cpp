@@ -1,4 +1,4 @@
-#include <Geode/Geode.hpp>
+/* #include <Geode/Geode.hpp>
 #include "pythonui.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
@@ -66,4 +66,4 @@ class $modify(MyMenuLayer, MenuLayer) {
         auto popup = PythonPopup::create();
         popup->show();
     }
-}; 
+}; */
